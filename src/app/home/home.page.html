@@ -1,20 +1,55 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <div class="stats-container ion-padding">
+    <ion-card>
+      <ion-card-content>
+        <div class="progress-label" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <ion-text color="medium">Overall Sync Progress</ion-text>
+          <strong>{{ scanState.syncProgress() | percent }}</strong>
+        </div>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+        <ion-progress-bar [value]="scanState.syncProgress()"></ion-progress-bar>
+
+        <ion-grid class="ion-no-padding ion-margin-top">
+          <ion-row>
+            <ion-col size="4" class="ion-text-center">
+              <div style="font-size: 1.2rem; font-weight: bold; color: var(--ion-color-success);">
+                {{ scanState.syncedCount() }}
+              </div>
+              <div style="font-size: 0.8rem; color: var(--ion-color-medium);">Synced</div>
+            </ion-col>
+            <ion-col size="4" class="ion-text-center">
+              <div style="font-size: 1.2rem; font-weight: bold; color: var(--ion-color-danger);">
+                {{ scanState.errorCount() }}
+              </div>
+              <div style="font-size: 0.8rem; color: var(--ion-color-medium);">Errors</div>
+            </ion-col>
+            <ion-col size="4" class="ion-text-center">
+              <div style="font-size: 1.2rem; font-weight: bold; color: var(--ion-color-warning);">
+                {{ scanState.pendingCount() }}
+              </div>
+              <div style="font-size: 0.8rem; color: var(--ion-color-medium);">Pending</div>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card-content>
+    </ion-card>
   </div>
+
+  <ion-list>
+    @for (item of scanState.scanList(); track item.barcode) {
+    <app-scan-item [item]="item" (onRetry)="retrySync($event)"></app-scan-item>
+    } @empty {
+      <div class="ion-padding ion-text-center" style="margin-top: 50px;">
+        <ion-icon name="scan-outline" style="font-size: 64px; color: var(--ion-color-medium);"></ion-icon>
+        <h3 style="color: var(--ion-color-medium);">No Scans Found</h3>
+        <p>Tap the button below to start tracking inventory.</p>
+      </div>
+    }
+  </ion-list>
 </ion-content>
+
+<ion-fab slot="fixed" vertical="bottom" horizontal="end">
+  <ion-fab-button (click)="startNewScan()">
+    <ion-icon name="scan-outline"></ion-icon>
+  </ion-fab-button>
+</ion-fab>
