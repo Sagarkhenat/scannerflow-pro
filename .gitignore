@@ -17,11 +17,24 @@ log.txt
 /.versions
 /coverage
 
+# Dependencies
+node_modules/
+
 # Ionic
 /.ionic
 /www
 /platforms
 /plugins
+/android
+
+# Capacitor / Native
+android/
+ios/
+
+#environment/secrets
+.env
+src/environments/environment.ts
+src/environments/environment.prod.ts
 
 # Compiled output
 /dist
@@ -36,6 +49,7 @@ yarn-error.log
 
 # IDEs and editors
 .idea/
+.vscode/
 .project
 .classpath
 .c9/
@@ -43,6 +57,7 @@ yarn-error.log
 .settings/
 *.sublime-project
 *.sublime-workspace
+.DS_Store
 
 # Visual Studio Code
 .vscode/*
