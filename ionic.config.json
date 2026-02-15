@@ -1,0 +1,7 @@
+{
+  "name": "ScanFlowPro",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
