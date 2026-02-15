@@ -1,6 +1,6 @@
 // src/app/services/sync.service.ts
 import { Injectable, effect } from '@angular/core';
-import { Network } from '@capacitor/network';
+import { Network, ConnectionStatus } from '@capacitor/network';
 import { ScanStateService } from '../providers';
 import { MOCK_INVENTORY } from 'src/app/data/mock-inventory';
 
@@ -12,7 +12,7 @@ export class SyncService {
 
   private async initNetworkListener() {
     // Listen for status changes
-    Network.addListener('networkStatusChange', status => {
+    Network.addListener('networkStatusChange', (status: ConnectionStatus) => {
       if (status.connected) {
         this.processQueue();
       }

@@ -1,6 +1,7 @@
 import { Component, inject,CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { IonContent,IonProgressBar,IonCard,
-        IonCardContent,IonList,IonFab, IonFabButton, IonIcon,IonText, IonGrid, IonRow, IonCol } from '@ionic/angular/standalone';
+import { Platform } from '@ionic/angular/standalone';
+import { IonContent,IonProgressBar,IonCard,IonCardContent,
+          IonList,IonFab, IonFabButton, IonIcon,IonText, IonGrid, IonRow, IonCol } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
 import { scanOutline } from 'ionicons/icons';
@@ -26,10 +27,20 @@ export class HomePage {
   public scanState = inject(ScanStateService);
   private syncService = inject(SyncService);
   private barcodeService = inject(BarcodeService);
+  private platform = inject(Platform);
+
+  // Property to check if we are on a native device
+  isNative = this.platform.is('hybrid');
 
   constructor() {
     // Register the icon so it renders in standalone mode
     addIcons({ scanOutline });
+  }
+
+  mockScan(code: string) {
+    console.log('Simulating scan for browser testing...', code);
+    this.scanState.addScan(code);
+    // This will trigger the SyncService automatically [cite: 2026-02-12]
   }
 
   async startNewScan() {
