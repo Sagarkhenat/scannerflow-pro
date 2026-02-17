@@ -1,27 +1,30 @@
-#container {
-  text-align: center;
+.stats-container {
+  /* Adds padding to the top of the container equal to the device's status bar */
+  padding-top: calc(var(--ion-safe-area-top) + 10px);
 
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  ion-card {
+    margin: 16px; /* Matches the margin of the scan items */
+    border-radius: 12px; /* Slightly more rounded for a modern look */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle depth */
+    background: var(--ion-card-background, #1e1e1e);
+  }
+
+  ion-progress-bar {
+    height: 8px;
+    border-radius: 4px;
+    --background: rgba(var(--ion-color-primary-rgb), 0.1);
+  }
+
 }
 
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
+ion-fab {
+  /* Shifts the FAB up to avoid overlapping with bottom navigation bars */
+  margin-bottom: var(--ion-safe-area-bottom);
+  margin-right: var(--ion-safe-area-right);
 }
 
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-
-  color: #8c8c8c;
-
-  margin: 0;
+/* Ensure the list doesn't get cut off at the very bottom */
+ion-list {
+  padding-bottom: calc(var(--ion-safe-area-bottom) + 80px);
 }
 
-#container a {
-  text-decoration: none;
-}
