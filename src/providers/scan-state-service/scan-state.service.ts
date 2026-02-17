@@ -4,11 +4,13 @@ export interface ScannedItem {
   barcode: string;
   timestamp: number;
   status: 'pending' | 'synced' | 'error';
+  productName?: string; //Optional field added to show the product name
 }
 
 @Injectable({ providedIn: 'root' })
 export class ScanStateService {
-  // The "Source of Truth"
+
+  // The scanList variable provides the required result
   public scanList = signal<ScannedItem[]>([]);
 
   // Computed signal for the UI to show total count
@@ -34,6 +36,8 @@ export class ScanStateService {
   // Progress percentage for a visual bar
   syncProgress = computed(() => {
     const total = this.totalCount();
+    console.log('total variable output in sync progress function :::', total, this.syncedCount());
+
     if (total === 0) return 0;
     return this.syncedCount() / total;
   });
@@ -47,9 +51,13 @@ export class ScanStateService {
     this.scanList.update(items => [newItem, ...items]);
   }
 
-  updateStatus(barcode: string, status: 'synced' | 'error' | 'pending') {
+  updateStatus(barcode: string, status: ScannedItem['status'], productName?: string) {
     this.scanList.update(items =>
-      items.map(item => item.barcode === barcode ? { ...item, status } : item)
+      items.map(item =>
+        item.barcode === barcode
+        ? { ...item, status, productName: productName || item.productName }
+        : item
+      )
     );
   }
 }

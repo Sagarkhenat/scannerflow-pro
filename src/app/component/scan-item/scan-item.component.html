@@ -1,3 +1,34 @@
-<p>
-  scan-item works!
-</p>
+<ion-item lines="none" class="scan-item">
+  <div class="item-container">
+    <div class="info-column">
+
+      <h2 class="product-name">
+        {{ item.productName || (item.status === 'error' ? 'Unknown Product' : 'Identifying...') }}
+      </h2>
+
+      <p class="item-details">
+        <span class="barcode-badge">{{ item.barcode }}</span>
+        <span class="separator">•</span>
+        <span class="timestamp">{{ item.timestamp | date:'shortTime' }}</span>
+      </p>
+
+    </div> <!-- End of info-column div-->
+
+    <div class="status-column">
+      <ion-badge [color]="getStatusColor(item.status)" class="status-badge">
+        {{ item.status | uppercase }}
+      </ion-badge>
+
+
+      @if(item.status === 'error'){
+        <ion-button fill="clear" color="danger" (click)="onRetry.emit(item)">
+          <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+        </ion-button>
+      }@else(){
+
+      }
+    </div> <!--End of status-column div-->
+  </div><!--End of item-container div-->
+
+
+</ion-item>

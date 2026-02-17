@@ -1,0 +1,96 @@
+.scan-item {
+  /* This targets the internal container of the ion-item */
+  --padding-start: 20px; /* Increased left padding */
+  --padding-end: 16px;
+  --inner-padding-end: 0px; /* Removes extra internal gap */
+  margin: 8px 16px; /* Adds space around the outside of each item */
+  border-radius: 8px; /* Makes the items look like clean cards */
+  overflow: hidden;
+
+  .item-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 12px 0;
+  }
+
+  .info-column {
+    flex: 1;
+    .product-name {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #ffffff; /* Brighter for dark mode contrast */
+      margin: 0 0 4px 0;
+    }
+  }
+
+  .status-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    text-align: right;
+
+    .status-badge {
+      font-size: 0.65rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      font-weight: 700;
+      min-width: 65px;
+      text-align: center;
+    }
+
+    .retry-btn {
+      --padding-start: 0;
+      --padding-end: 0;
+      height: 24px;
+      margin: 0;
+      color: var(--ion-color-danger);
+    }
+  }
+
+  .barcode-badge {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: 800;
+  }
+
+  .item-details {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    margin-top: 4px;
+    color: var(--ion-color-medium);
+
+    .separator {
+      margin: 0 8px;
+    }
+  }
+
+  .barcode-text {
+    font-weight: bold;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+  }
+
+  .timestamp-text {
+    font-size: 0.85rem;
+    margin-top: 4px;
+  }
+
+
+  /* Force badge colors if [color] attribute fails */
+  ion-badge[color="success"] { --background: var(--ion-color-success); --color: var(--ion-color-success-contrast); }
+  ion-badge[color="danger"] { --background: var(--ion-color-danger); --color: var(--ion-color-danger-contrast); }
+  ion-badge[color="warning"] { --background: var(--ion-color-warning); --color: var(--ion-color-warning-contrast); }
+
+  /* Force button color */
+  ion-button[color="danger"] {
+    --color: var(--ion-color-danger);
+  }
+
+}

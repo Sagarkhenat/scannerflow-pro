@@ -5,13 +5,14 @@ import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 export class BarcodeService {
 
   async startScan(): Promise<string[]> {
-    // 1. Check/Request permissions
+    // Check for required permissions, else prompt request
     const status = await BarcodeScanner.checkPermissions();
+    console.log('Inside start scan function status variable value :::', status);
     if (status.camera !== 'granted') {
       await BarcodeScanner.requestPermissions();
     }
 
-    // 2. Start the scan (Native overlay)
+    //  Start the scan (Native overlay)
     const { barcodes } = await BarcodeScanner.scan();
     return barcodes.map(b => b.displayValue);
   }

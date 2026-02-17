@@ -1,7 +1,7 @@
 import { Component, inject,CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Platform } from '@ionic/angular/standalone';
-import { IonContent,IonProgressBar,IonCard,IonCardContent,
-          IonList,IonFab, IonFabButton, IonIcon,IonText, IonGrid, IonRow, IonCol } from '@ionic/angular/standalone';
+import { IonContent,IonProgressBar,IonCard,IonCardContent, IonList,
+          IonFab, IonFabButton, IonIcon,IonText, IonGrid, IonRow,IonCol,IonHeader, } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
 import { scanOutline } from 'ionicons/icons';
@@ -18,7 +18,7 @@ import { ScanItemComponent } from '../component/scan-item/scan-item.component';
   imports: [CommonModule, ScanItemComponent, PercentPipe,
             IonContent,IonProgressBar,IonCard,IonCardContent,
             IonList,IonFab, IonFabButton, IonIcon,
-            IonText, IonGrid, IonRow, IonCol],
+            IonText, IonGrid, IonRow, IonCol,IonHeader],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class HomePage {
@@ -33,14 +33,14 @@ export class HomePage {
   isNative = this.platform.is('hybrid');
 
   constructor() {
-    // Register the icon so it renders in standalone mode
+    // Registering the icon so it renders in standalone mode
     addIcons({ scanOutline });
   }
 
   mockScan(code: string) {
     console.log('Simulating scan for browser testing...', code);
     this.scanState.addScan(code);
-    // This will trigger the SyncService automatically [cite: 2026-02-12]
+    // This will trigger the SyncService automatically
   }
 
   async startNewScan() {

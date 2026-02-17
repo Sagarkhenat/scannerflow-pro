@@ -1,43 +1,33 @@
-// src/app/components/scan-item/scan-item.component.ts
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
+import { IonItem, IonLabel, IonBadge, IonButton, IonIcon } from '@ionic/angular/standalone';
 import { ScannedItem } from 'src/providers/scan-state-service/scan-state.service';
-
+import { addIcons } from 'ionicons';
+import { refreshOutline } from 'ionicons/icons';
 @Component({
   selector: 'app-scan-item',
   standalone: true,
-  imports: [CommonModule, IonicModule],
-  template: `
-    <ion-item>
-      <ion-label>
-        <h2>{{ item.barcode }}</h2>
-        <p>{{ item.timestamp | date:'mediumTime' }}</p>
-      </ion-label>
-
-      <ion-badge slot="end" [color]="getStatusColor(item.status)">
-        {{ item.status | uppercase }}
-      </ion-badge>
-
-      <ion-button
-        *ngIf="item.status === 'error'"
-        slot="end"
-        fill="clear"
-        (click)="onRetry.emit(item)">
-        <ion-icon name="refresh-outline"></ion-icon>
-      </ion-button>
-    </ion-item>
-  `
+  imports: [CommonModule, IonicModule,IonItem, IonBadge, IonButton, IonIcon],
+  templateUrl: './scan-item.component.html',
+  styleUrls: ['./scan-item.component.scss'],
 })
+
 export class ScanItemComponent {
   @Input({ required: true }) item!: ScannedItem;
   @Output() onRetry = new EventEmitter<ScannedItem>();
 
+  constructor() {
+    addIcons({ refreshOutline });
+  }
+
   getStatusColor(status: string) {
+    console.log('Inside status color function for scanned item::', status);
     switch (status) {
       case 'synced': return 'success';
       case 'error': return 'danger';
-      default: return 'warning'; // 'pending'
+      case 'pending': return 'warning';
+      default: return 'medium'; // 'pending'
     }
   }
 }

@@ -1,15 +1,4 @@
-<ion-content [fullscreen]="true">
-
-  <!--Mock scan logic added for running on browser-->
-  <div class="ion-padding" *ngIf="!isNative">
-    <ion-button expand="block" fill="outline" (click)="mockScan('12345')">
-      Simulate Success Scan (12345)
-    </ion-button>
-    <ion-button expand="block" fill="outline" color="danger" (click)="mockScan('99999')">
-      Simulate Error Scan (99999)
-    </ion-button>
-  </div>
-
+<ion-header class="ion-no-border">
   <div class="stats-container ion-padding">
     <ion-card>
       <ion-card-content>
@@ -45,6 +34,25 @@
       </ion-card-content>
     </ion-card>
   </div>
+</ion-header>
+
+<ion-content>
+
+  <!--Mock scan logic added for testing/running on browser-->
+  @if (!isNative) {
+    <div class="ion-padding">
+      <ion-button expand="block" fill="outline" (click)="mockScan('12345')">
+        Simulate Success Scan (12345)
+      </ion-button>
+      <ion-button expand="block" fill="outline" color="danger" (click)="mockScan('99999')">
+        Simulate Error Scan (99999)
+      </ion-button>
+    </div>
+  }@else(){
+
+  }
+
+  <!----------------------------------------------->
 
   <ion-list>
     @for (item of scanState.scanList(); track item.barcode) {
@@ -57,6 +65,7 @@
       </div>
     }
   </ion-list>
+
 </ion-content>
 
 <ion-fab slot="fixed" vertical="bottom" horizontal="end">
