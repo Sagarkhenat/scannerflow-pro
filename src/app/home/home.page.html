@@ -1,5 +1,31 @@
 <ion-header class="ion-no-border">
   <div class="stats-container ion-padding">
+
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+
+      <h1 style="margin: 0; font-weight: 800;">ScanFlow Pro</h1>
+
+      <div style="display: flex; align-items: center; gap: 8px; min-height: 20px;">
+        <!-- Show last synced time if done or show syncing message during sync call-->
+        @if (scanState.isSyncing()) {
+          <ion-spinner name="dots" color="warning" style="width: 20px; height: 20px;"></ion-spinner>
+          <span style="font-size: 0.75rem; color: var(--ion-color-warning); font-weight: bold;">Syncing...</span>
+        }@else if(scanState.lastSynced()){
+          <p style="margin: 0; font-size: 0.75rem; color: var(--ion-color-medium);">
+            Last Synced: {{ scanState.lastSynced() | date:'mediumTime' }}
+          </p>
+        }
+      </div><!-- end of sync variable divs-->
+
+
+      <!-- Check for scanned item list is greater than 0-->
+      @if (scanState.totalCount() > 0) {
+        <ion-button fill="clear" color="medium" (click)="confirmClear()">
+          <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      }@else {}
+    </div>
+
     <ion-card>
       <ion-card-content>
         <div class="progress-label" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
@@ -37,6 +63,11 @@
 </ion-header>
 
 <ion-content>
+  <!-- Pull to refresh functionality for updating scan items-->
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content pullingIcon="chevron-down-circle-outline" refreshingSpinner="circles">
+    </ion-refresher-content>
+  </ion-refresher>
 
   <!--Mock scan logic added for testing/running on browser-->
   @if (!isNative) {

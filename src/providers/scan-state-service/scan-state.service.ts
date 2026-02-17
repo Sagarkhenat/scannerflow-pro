@@ -1,5 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
-
+import { Injectable, signal, computed, effect } from '@angular/core';
+import { Preferences } from '@capacitor/preferences';
 export interface ScannedItem {
   barcode: string;
   timestamp: number;
@@ -9,9 +9,39 @@ export interface ScannedItem {
 
 @Injectable({ providedIn: 'root' })
 export class ScanStateService {
-
+  private readonly STORAGE_KEY = 'scans'
   // The scanList variable provides the required result
   public scanList = signal<ScannedItem[]>([]);
+
+  // Declaring a variable to save the last synced time
+  public lastSynced = signal<Date | null>(null);
+
+  public isSyncing = signal<boolean>(false);
+
+  constructor() {
+    // [2] Load data on startup
+    this.loadPersistedData();
+
+    // [3] Auto-save whenever scanList changes
+    effect(() => {
+      const currentList = this.scanList();
+      this.saveData(currentList);
+    });
+  }
+
+  private async saveData(items: ScannedItem[]) {
+    await Preferences.set({
+      key: this.STORAGE_KEY,
+      value: JSON.stringify(items),
+    });
+  }
+
+  private async loadPersistedData() {
+    const { value } = await Preferences.get({ key: this.STORAGE_KEY });
+    if (value) {
+      this.scanList.set(JSON.parse(value));
+    }
+  }
 
   // Computed signal for the UI to show total count
   totalCount = computed(() => this.scanList().length);
@@ -43,12 +73,30 @@ export class ScanStateService {
   });
 
   addScan(barcode: string) {
+
+    const currentItems = this.scanList();
+
+    // 1. Check if the barcode already exists in the last 10 seconds
+    const isDuplicate = currentItems.some(item =>
+      item.barcode === barcode &&
+      (Date.now() - item.timestamp) < 10000 // 10-second window
+    );
+
+    if (isDuplicate) {
+    console.warn(`Duplicate scan detected for ${barcode}. Ignoring.`);
+    console.log('Duplicate scan detected for the barcode item :: ', barcode);
+    return false; // Return false so the UI can provide feedback if needed
+    }else{}
+
     const newItem: ScannedItem = {
       barcode,
       timestamp: Date.now(),
       status: 'pending'
     };
+
     this.scanList.update(items => [newItem, ...items]);
+
+    return true;
   }
 
   updateStatus(barcode: string, status: ScannedItem['status'], productName?: string) {
@@ -59,5 +107,20 @@ export class ScanStateService {
         : item
       )
     );
+  }
+
+  async clearHistory() {
+    // Clear the signal state
+    this.scanList.set([]);
+    // Remove the key from local persistence
+    await Preferences.remove({ key: this.STORAGE_KEY });
+  }
+
+  updateLastSynced() {
+    this.lastSynced.set(new Date());
+  }
+
+  setSyncing(val: boolean) {
+    this.isSyncing.set(val);
   }
 }
