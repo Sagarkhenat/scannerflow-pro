@@ -20,9 +20,12 @@ export class SyncService {
     });
   }
 
-  async processQueue() {
+  public async processQueue() {
     const pending = this.scanState.pendingScans();
+
     console.log('pending variable value inside process queue :::', pending);
+
+    if (pending.length === 0) return; // Optional: don't update if nothing was processed
 
     for (const item of pending) {
       try {
@@ -61,6 +64,11 @@ export class SyncService {
         }
       }
     }
+
+    // After the loop finishes all items
+    this.scanState.updateLastSynced();
+    this.scanState.updateLastSynced();
+
   }
 
 private async showErrorToast(message: string) {
