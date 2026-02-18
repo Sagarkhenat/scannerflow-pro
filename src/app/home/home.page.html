@@ -1,22 +1,10 @@
+<!-- Header section to show the app-name, sync count and remove scanned items -->
 <ion-header class="ion-no-border">
   <div class="stats-container ion-padding">
 
+    <!-- Header sub-div to align app name and trash icon to remove scanned items-->
     <div style="display: flex; justify-content: space-between; align-items: center;">
-
       <h1 style="margin: 0; font-weight: 800;">ScanFlow Pro</h1>
-
-      <div style="display: flex; align-items: center; gap: 8px; min-height: 20px;">
-        <!-- Show last synced time if done or show syncing message during sync call-->
-        @if (scanState.isSyncing()) {
-          <ion-spinner name="dots" color="warning" style="width: 20px; height: 20px;"></ion-spinner>
-          <span style="font-size: 0.75rem; color: var(--ion-color-warning); font-weight: bold;">Syncing...</span>
-        }@else if(scanState.lastSynced()){
-          <p style="margin: 0; font-size: 0.75rem; color: var(--ion-color-medium);">
-            Last Synced: {{ scanState.lastSynced() | date:'mediumTime' }}
-          </p>
-        }
-      </div><!-- end of sync variable divs-->
-
 
       <!-- Check for scanned item list is greater than 0-->
       @if (scanState.totalCount() > 0) {
@@ -26,9 +14,26 @@
       }@else {}
     </div>
 
+    <!------- Syncing info div start------------->
+    <div class="syncing-info">
+      <!-- Show last synced time if done or show syncing message during sync call-->
+      @if (scanState.isSyncing()) {
+        <ion-spinner name="dots" color="warning" style="width: 20px; height: 20px;"></ion-spinner>
+        <span class="syncing-text">Syncing...</span>
+      }@else if(scanState.lastSynced()){
+        <p class="last-synced-info">
+          Last Synced: {{ scanState.lastSynced() | date:'mediumTime' }}
+        </p>
+      }
+    </div>
+    <!------- end of syncing info divs ------------>
+
+    <!------------------------- End of header sub-div ------------------------->
+
+    <!--------------- Ion-card info to show overall sync progress done-------------------------->
     <ion-card>
       <ion-card-content>
-        <div class="progress-label" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <div class="progress-label">
           <ion-text color="medium">Overall Sync Progress</ion-text>
           <strong>{{ scanState.syncProgress() | percent }}</strong>
         </div>
@@ -38,30 +43,35 @@
         <ion-grid class="ion-no-padding ion-margin-top">
           <ion-row>
             <ion-col size="4" class="ion-text-center">
-              <div style="font-size: 1.2rem; font-weight: bold; color: var(--ion-color-success);">
+              <div class="synced-count">
                 {{ scanState.syncedCount() }}
               </div>
-              <div style="font-size: 0.8rem; color: var(--ion-color-medium);">Synced</div>
+              <div class="syncing-label">Synced</div>
             </ion-col>
             <ion-col size="4" class="ion-text-center">
-              <div style="font-size: 1.2rem; font-weight: bold; color: var(--ion-color-danger);">
+              <div class="error-count">
                 {{ scanState.errorCount() }}
               </div>
-              <div style="font-size: 0.8rem; color: var(--ion-color-medium);">Errors</div>
+              <div class="syncing-label">Errors</div>
             </ion-col>
             <ion-col size="4" class="ion-text-center">
-              <div style="font-size: 1.2rem; font-weight: bold; color: var(--ion-color-warning);">
+              <div class="pending-count">
                 {{ scanState.pendingCount() }}
               </div>
-              <div style="font-size: 0.8rem; color: var(--ion-color-medium);">Pending</div>
+              <div class="syncing-label">Pending</div>
             </ion-col>
           </ion-row>
         </ion-grid>
       </ion-card-content>
     </ion-card>
+    <!--------------End of ion-card info ------------------------------------->
   </div>
+  <!--------End of stats container info div -->
 </ion-header>
 
+<!------------------------------------- End of ion-header div------------------------->
+
+<!------------------------ Content to show the scanned item list and pull to refresh functionality ------------------>
 <ion-content>
   <!-- Pull to refresh functionality for updating scan items-->
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
@@ -72,10 +82,10 @@
   <!--Mock scan logic added for testing/running on browser-->
   @if (!isNative) {
     <div class="ion-padding">
-      <ion-button expand="block" fill="outline" (click)="mockScan('12345')">
+      <ion-button expand="block" fill="outline" (click)="mockScanSuccess('12345')">
         Simulate Success Scan (12345)
       </ion-button>
-      <ion-button expand="block" fill="outline" color="danger" (click)="mockScan('99999')">
+      <ion-button expand="block" fill="outline" color="danger" (click)="mockScanError('99999')">
         Simulate Error Scan (99999)
       </ion-button>
     </div>
@@ -87,7 +97,9 @@
 
   <ion-list>
     @for (item of scanState.scanList(); track item.barcode) {
-    <app-scan-item [item]="item" (onRetry)="retrySync($event)"></app-scan-item>
+      <app-scan-item [item]="item"
+        (onRetry)="retrySync($event)"
+        (onDelete)="deleteScannedItem($event)"></app-scan-item>
     } @empty {
       <div class="ion-padding ion-text-center" style="margin-top: 50px;">
         <ion-icon name="scan-outline" style="font-size: 64px; color: var(--ion-color-medium);"></ion-icon>
@@ -99,6 +111,7 @@
 
 </ion-content>
 
+<!------------------End of ion-content div --------------------------------------------------->
 <ion-fab slot="fixed" vertical="bottom" horizontal="end">
   <ion-fab-button (click)="startNewScan()">
     <ion-icon name="scan-outline"></ion-icon>
