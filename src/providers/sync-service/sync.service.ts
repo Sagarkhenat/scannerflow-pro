@@ -37,15 +37,9 @@ export class SyncService {
 
         console.log('Passing to update status the barcode value ::', item.barcode);
 
-        // 2. Update the state with BOTH the status and the retrieved name
+        // Update the state with BOTH the status and the retrieved name
         // You'll need an updateItem method in your service to handle multiple fields
         this.scanState.updateStatus(item.barcode, 'synced', product.name);
-
-        // If your service supports updating the whole object:
-        // this.scanState.updateItem(item.barcode, {
-        //    status: 'synced',
-        //    productName: productInfo.name
-        // });
 
       } catch (error: any) {
         // Handle different error types
@@ -54,7 +48,7 @@ export class SyncService {
           console.error('Item not found in inventory');
           this.scanState.updateStatus(item.barcode, 'error', 'Product Not Found');
 
-          // 2. Trigger the Toast
+          // Trigger the error Toast
           this.showErrorToast(`Barcode ${item.barcode} not recognized.`);
 
         } else {

@@ -28,3 +28,43 @@ ion-list {
   padding-bottom: calc(var(--ion-safe-area-bottom) + 80px);
 }
 
+.syncing-info{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 20px;
+
+  .syncing-text{
+    font-size: 0.75rem;
+    color: var(--ion-color-warning);
+    font-weight: bold;
+  }
+
+  .last-synced-info{
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--ion-color-medium);
+  }
+}
+
+.syncing-label{
+  font-size: 0.8rem; color: var(--ion-color-medium);
+}
+
+.progress-label{
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.synced-count{
+font-size: 1.2rem; font-weight: bold; color: var(--ion-color-success);
+}
+
+.error-count{
+  font-size: 1.2rem; font-weight: bold; color: var(--ion-color-danger);
+}
+
+.pending-count{
+  font-size: 1.2rem; font-weight: bold; color: var(--ion-color-warning);
+}

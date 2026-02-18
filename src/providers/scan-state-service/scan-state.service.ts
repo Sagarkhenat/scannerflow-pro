@@ -69,22 +69,23 @@ export class ScanStateService {
     console.log('total variable output in sync progress function :::', total, this.syncedCount());
 
     if (total === 0) return 0;
-    return this.syncedCount() / total;
+    return ( this.syncedCount() / total );
   });
 
-  addScan(barcode: string) {
+  public addScan = (barcode: string) => {
 
     const currentItems = this.scanList();
+    console.log('current Items variable in add Scan function :::', currentItems);
 
-    // 1. Check if the barcode already exists in the last 10 seconds
+    // Check if the barcode already exists or scanned in the last 10 seconds
     const isDuplicate = currentItems.some(item =>
       item.barcode === barcode &&
       (Date.now() - item.timestamp) < 10000 // 10-second window
     );
 
     if (isDuplicate) {
-    console.warn(`Duplicate scan detected for ${barcode}. Ignoring.`);
-    console.log('Duplicate scan detected for the barcode item :: ', barcode);
+      console.warn(`Duplicate scan detected for ${barcode}. Ignoring.`);
+      console.log('Duplicate scan detected for the barcode item :: ', barcode);
     return false; // Return false so the UI can provide feedback if needed
     }else{}
 
@@ -99,7 +100,7 @@ export class ScanStateService {
     return true;
   }
 
-  updateStatus(barcode: string, status: ScannedItem['status'], productName?: string) {
+  public updateStatus = (barcode: string, status: ScannedItem['status'], productName?: string) => {
     this.scanList.update(items =>
       items.map(item =>
         item.barcode === barcode
@@ -116,11 +117,17 @@ export class ScanStateService {
     await Preferences.remove({ key: this.STORAGE_KEY });
   }
 
-  updateLastSynced() {
+  public updateLastSynced = () => {
     this.lastSynced.set(new Date());
   }
 
-  setSyncing(val: boolean) {
+  public setSyncing = (val: boolean) => {
     this.isSyncing.set(val);
+  }
+
+  public removeScan = (barcode: string) => {
+    this.scanList.update(items =>
+      items.filter(item => item.barcode !== barcode)
+    );
   }
 }
