@@ -15,7 +15,11 @@ export interface ScannedItem {
 
 @Injectable({ providedIn: 'root' })
 export class ScanStateService {
-  private readonly STORAGE_KEY = 'scans'
+  private readonly STORAGE_KEY = 'scans';
+
+  public isLoading = signal<boolean>(false);
+  public searchTerm = signal<string>('');
+
   // The scanList variable provides the required result
   public scanList = signal<ScannedItem[]>([]);
 
@@ -40,6 +44,29 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
       const currentList = this.scanList();
       this.saveData(currentList);
     });
+  }
+
+  /**
+   * Mock method to handle initial data fetching.
+   * Replace the timeout with your actual data loading logic.
+  */
+  async loadInitialData() {
+    // Simulate a network or storage delay to test the skeleton screen
+
+    try {
+      // For now, we simulate a delay to verify the skeleton screen works
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          console.log('Initial data loaded on the home page');
+          resolve(true);
+        }, 1500); // 1.5 second delay
+      });
+    }catch (error) {
+      console.error('Failed to load initial scans', error);
+      throw error;
+    }
+
+
   }
 
   private async saveData(items: ScannedItem[]) {
@@ -100,6 +127,21 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     this.searchQuery.set(term);
   }
 
+  // Function addedfor determining the view state
+  public viewStatus = computed(() => {
+    if (this.isLoading()) {
+      return 'loading';
+    }
+
+    // Note: use .length on the signal value if scanList is a signal
+    if(this.scanList().length === 0 && !this.searchTerm()) {
+      return 'empty-fresh';
+    }
+    if (this.filteredScans().length === 0 && this.searchTerm()){
+      return 'empty-search';
+    }
+    return 'data';
+  });
 
   public addScan = (barcode: string) => {
 

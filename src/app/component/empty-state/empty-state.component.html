@@ -1,0 +1,12 @@
+<div class="empty-state-container fade-in">
+  <div class="icon-wrapper">
+    <ion-icon [name]="content().icon"></ion-icon>
+  </div>
+
+  <h2>{{ content().title }}</h2>
+  <p>{{ content().description }}</p>
+
+  <ion-button fill="outline" shape="round" color="primary" (click)="handleButtonClick()">
+    {{ content().buttonText }}
+  </ion-button>
+</div>
