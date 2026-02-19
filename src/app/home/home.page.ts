@@ -2,10 +2,10 @@ import { Component, inject } from '@angular/core';
 import { Platform,IonContent,IonProgressBar,IonCard,
         IonCardContent, IonList,IonFab, IonFabButton,
         IonIcon,IonText, IonGrid, IonRow,IonCol,
-        IonHeader,AlertController,IonButton,IonSpinner } from '@ionic/angular/standalone';
+        IonHeader,AlertController,IonButton,IonSpinner, IonSearchbar } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { scanOutline,trashOutline,chevronDownCircleOutline } from 'ionicons/icons';
+import { scanOutline,trashOutline,chevronDownCircleOutline,downloadOutline } from 'ionicons/icons';
 import { CommonModule,PercentPipe,DatePipe } from '@angular/common';
 import { IonRefresher, IonRefresherContent, ToastController } from '@ionic/angular/standalone';
 import { Haptics, ImpactStyle,NotificationType } from '@capacitor/haptics';
@@ -17,21 +17,13 @@ import { ScanItemComponent } from '../component/scan-item/scan-item.component';
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [CommonModule, ScanItemComponent, PercentPipe,DatePipe,
+  imports: [IonSearchbar, CommonModule, ScanItemComponent, PercentPipe,DatePipe,
             IonContent,IonProgressBar,IonCard,IonCardContent,
             IonList,IonFab, IonFabButton, IonIcon,
             IonText, IonGrid, IonRow, IonCol,IonHeader,IonButton,
             IonRefresher, IonRefresherContent,IonSpinner]
 })
 export class HomePage {
-
-  // Inject the service as public so the template can see it
-  // public scanState = inject(ScanStateService);
-  // public  syncService = inject(SyncService);
-  // private barcodeService = inject(BarcodeService);
-  // private platform = inject(Platform);
-  // private alertCtrl = inject(AlertController);
-  // private toastCtrl = inject(ToastController);
 
   // Property to check if we are on a native device
   isNative = this.platform.is('hybrid');
@@ -40,7 +32,7 @@ export class HomePage {
             private platform: Platform,  private alertCtrl: AlertController,private toastCtrl : ToastController) {
 
     // Registering the icon so it renders in standalone mode
-    addIcons({ scanOutline, trashOutline, chevronDownCircleOutline });
+    addIcons({ scanOutline, trashOutline, chevronDownCircleOutline, downloadOutline });
 
   }
 
@@ -162,5 +154,25 @@ export class HomePage {
       Haptics.impact({ style: ImpactStyle.Light });
     }else{}
 
+  }
+
+  public onSearchChange = (event: any) => {
+    console.log('Inside on search item change :::', event);
+    const query = event.target.value || '';
+    this.scanState.updateSearch(query);
+  }
+
+  public onSearchClear = () => {
+    this.scanState.updateSearch('');
+  }
+
+  public exportData = () => {
+      const csvData = this.scanState.generateCSVString(); // Move the string generation to a helper
+
+      if (this.isNative) {
+        this.scanState.shareCSV(csvData);
+      } else {
+        this.scanState.downloadFile(csvData, 'scans.csv');
+      }
   }
 }
