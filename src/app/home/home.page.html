@@ -1,34 +1,59 @@
 <!-- Header section to show the app-name, sync count and remove scanned items -->
-<ion-header class="ion-no-border">
+<ion-header class="ion-no-border" [translucent]="true">
   <div class="stats-container ion-padding">
 
     <!-- Header sub-div to align app name and trash icon to remove scanned items-->
     <div style="display: flex; justify-content: space-between; align-items: center;">
+
       <h1 style="margin: 0; font-weight: 800;">ScanFlow Pro</h1>
 
-      <!-- Check for scanned item list is greater than 0-->
-      @if (scanState.totalCount() > 0) {
-        <ion-button fill="clear" color="medium" (click)="confirmClear()">
-          <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+      <!-- <div class="header-actions"> -->
+        <!-------Export data to csv button -------------->
+        <ion-button fill="clear" color="primary" (click)="scanState.exportFilteredToCSV()" [disabled]="scanState.totalCount() === 0">
+          <ion-icon name="download-outline" slot="icon-only"></ion-icon>
         </ion-button>
-      }@else {}
+
+        <!-- Check for scanned item list is greater than 0-->
+        @if (scanState.totalCount() > 0) {
+          <ion-button fill="clear" color="medium" (click)="confirmClear()">
+            <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        }@else {}
+
+      <!-- </div> -->
+      <!--End of header-actions-->
+
     </div>
 
     <!------- Syncing info div start------------->
-    <div class="syncing-info">
-      <!-- Show last synced time if done or show syncing message during sync call-->
-      @if (scanState.isSyncing()) {
-        <ion-spinner name="dots" color="warning" style="width: 20px; height: 20px;"></ion-spinner>
-        <span class="syncing-text">Syncing...</span>
-      }@else if(scanState.lastSynced()){
-        <p class="last-synced-info">
-          Last Synced: {{ scanState.lastSynced() | date:'mediumTime' }}
-        </p>
-      }
-    </div>
+    @if (scanState.isSyncing() || scanState.lastSynced()) {
+      <div class="syncing-info">
+        <!-- Show last synced time if done or show syncing message during sync call-->
+        @if (scanState.isSyncing()) {
+          <ion-spinner name="dots" color="warning" style="width: 20px; height: 20px;"></ion-spinner>
+          <span class="syncing-text">Syncing...</span>
+        }@else if(scanState.lastSynced()){
+          <p class="last-synced-info">
+            Last Synced: {{ scanState.lastSynced() | date:'mediumTime' }}
+          </p>
+        }
+      </div>
+    }@else{}
+
     <!------- end of syncing info divs ------------>
 
-    <!------------------------- End of header sub-div ------------------------->
+    <!------------------Search bar and filter container------------------------>
+    <div class="search-wrapper ion-margin-top ion-margin-bottom">
+      <ion-searchbar placeholder="Search barcodes..."
+        (ionInput)="onSearchChange($event)"
+        (ionClear)="onSearchClear()"
+        show-clear-button="always"
+        [debounce]="250" mode="ios"class="custom-search">
+      </ion-searchbar>
+    </div>
+
+    <!------------End of search bar container --------------------------------->
+
 
     <!--------------- Ion-card info to show overall sync progress done-------------------------->
     <ion-card>
@@ -96,7 +121,7 @@
   <!----------------------------------------------->
 
   <ion-list>
-    @for (item of scanState.scanList(); track item.barcode) {
+    @for (item of scanState.filteredScans(); track item.barcode) {
       <app-scan-item [item]="item"
         (onRetry)="retrySync($event)"
         (onDelete)="deleteScannedItem($event)"></app-scan-item>

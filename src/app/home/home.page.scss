@@ -32,7 +32,14 @@ ion-list {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 20px;
+  min-height: 24px;
+  margin-bottom:5px;
+
+  animation: fadeIn 0.4s ease-in-out;
+  p {
+    margin: 0; /* Prevents default paragraph margins from adding extra space */
+    font-size: 0.85rem;
+  }
 
   .syncing-text{
     font-size: 0.75rem;
@@ -47,8 +54,63 @@ ion-list {
   }
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px); // Slight slide down effect
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .syncing-label{
   font-size: 0.8rem; color: var(--ion-color-medium);
+}
+
+.search-wrapper {
+
+  .custom-search {
+    --background: var(--ion-color-light);
+    --border-radius: 12px;
+    --placeholder-color: var(--ion-color-medium);
+    --icon-color: var(--ion-color-primary);
+
+    /* THIS IS THE KEY: Override the internal Ionic variable */
+    --padding-inline-start: 45px !important;
+    padding-inline-start: 0; // Aligns with the H1 text
+    padding-inline-end: 0;
+    height: 48px;
+
+    &::part(clear-button) {
+      color: var(--ion-color-danger); // Makes the 'X' distinct
+      opacity: 1;
+    }
+
+    &::part(searchbar-input) {
+      // This adds space between the icon and the text
+      padding-inline-start: 45px !important;
+      // Optional: Adjust font weight to match your 800-weight header
+      font-weight: 400;
+    }
+
+    &::part(search-icon) {
+      margin-inline-start: 10px;
+      color: var(--ion-color-primary);
+      opacity: 1;
+    }
+
+  }
+}
+
+.searchbar-left-aligned.sc-ion-searchbar-ios-h .searchbar-input.sc-ion-searchbar-ios{
+  //--padding-inline-start: 2.875rem;
+}
+
+// Optional: Make the search text slightly bolder to match your theme
+.custom-search input {
+  font-weight: 500 !important;
 }
 
 .progress-label{
@@ -56,6 +118,7 @@ ion-list {
   justify-content: space-between;
   margin-bottom: 8px;
 }
+
 
 .synced-count{
 font-size: 1.2rem; font-weight: bold; color: var(--ion-color-success);

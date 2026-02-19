@@ -16,7 +16,7 @@ export class SyncService {
     Network.addListener('networkStatusChange', (status: ConnectionStatus) => {
       if (status.connected) {
         this.processQueue();
-      }
+      }else{}
     });
   }
 
@@ -81,6 +81,8 @@ private async uploadScan(item: any):Promise<any> {
     return new Promise((resolve, reject) => {
       // Simulate network latency
       const latency = Math.floor(Math.random() * 2000) + 500;
+
+      console.log('latency variable value generated during upload scan function :::', latency);
 
       setTimeout(() => {
         // Simulate a 404 Error (Item not in mock inventory)

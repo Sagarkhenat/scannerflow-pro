@@ -1,5 +1,11 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
+import { Platform } from '@ionic/angular/standalone';
+import { Share } from '@capacitor/share';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+
+import { AlertController } from '@ionic/angular';
+
 export interface ScannedItem {
   barcode: string;
   timestamp: number;
@@ -18,11 +24,18 @@ export class ScanStateService {
 
   public isSyncing = signal<boolean>(false);
 
-  constructor() {
-    // [2] Load data on startup
+  // Variable to save the search term
+  searchQuery = signal<string>('');
+
+  // Property to check if we are on a native device
+  isNative = this.platform.is('hybrid');
+
+constructor(private platform: Platform,private alertCtrl: AlertController) {
+
+    // Load data on startup
     this.loadPersistedData();
 
-    // [3] Auto-save whenever scanList changes
+    // Auto-save whenever scanList changes
     effect(() => {
       const currentList = this.scanList();
       this.saveData(currentList);
@@ -71,6 +84,22 @@ export class ScanStateService {
     if (total === 0) return 0;
     return ( this.syncedCount() / total );
   });
+
+  // Filtered scanned list items
+  filteredScans = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    if (!query) return this.scanList();
+
+    return this.scanList().filter(item =>
+      item.barcode.toLowerCase().includes(query)
+    );
+  });
+
+  // Method to update query from the component
+  public updateSearch = (term: string) => {
+    this.searchQuery.set(term);
+  }
+
 
   public addScan = (barcode: string) => {
 
@@ -130,4 +159,92 @@ export class ScanStateService {
       items.filter(item => item.barcode !== barcode)
     );
   }
+
+  public generateCSVString = () =>  {
+    const data = this.filteredScans();
+    if (data.length === 0) return '';
+
+    const headers = ['Barcode', 'Status', 'Timestamp'];
+    const rows = data.map(item => [
+      item.barcode,
+      item.status,
+      new Date(item.timestamp).toLocaleString()
+    ]);
+
+    return [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+  }
+
+  //Function to export scanned item info to csv
+  async exportFilteredToCSV() {
+
+    const csvContent = this.generateCSVString();
+
+    if (!csvContent) return;
+
+    if (this.isNative) {
+
+      // Mobile Flow: Save to disk then Share
+      await this.shareCSV(csvContent);
+
+    } else {
+      // Web Flow: Direct Download
+
+      // Tag the filename so the user knows it was a filtered export
+      const query = this.searchQuery() ? `-${this.searchQuery()}` : '';
+
+      this.downloadFile(csvContent, `scanflow-export-${Date.now()}.csv`);
+    }
+
+  }
+
+  public downloadFile = (content: string, fileName: string) => {
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', fileName);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+
+  async shareCSV(csvContent: string) {
+    const fileName = `ScanFlow_Export_${Date.now()}.csv`;
+
+    try {
+      // Save the file to the device cache first
+      const result = await Filesystem.writeFile({
+        path: fileName,
+        data: csvContent,
+        directory: Directory.Cache,
+        encoding: Encoding.UTF8,
+      });
+
+      //Open the Native Share Sheet
+      await Share.share({
+        title: 'Export Scan Data',
+        text: 'Sharing my scanned barcodes from ScanFlow Pro',
+        url: result.uri,
+        dialogTitle: 'Share CSV',
+      });
+    } catch (error:any) {
+
+      // Show a user-friendly alert if sharing fails
+      console.error('Error sharing CSV:', error);
+      const alert = await this.alertCtrl.create({
+        header: 'Export Failed',
+        message: error.message || 'Could not open the share sheet.',
+        buttons: ['OK']
+      });
+      await alert.present();
+    }
+  }
+
+
 }
