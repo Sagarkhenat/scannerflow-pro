@@ -24,8 +24,12 @@ export class ScanItemComponent {
     addIcons({ refreshOutline,trashOutline });
   }
 
+  /**
+   *
+  */
   public getStatusColor = (status: string) => {
-    console.log('Inside status color function for scanned item::', status);
+    //console.log('Inside status color function for scanned item::', status);
+
     switch (status) {
       case 'synced': return 'success';
       case 'error': return 'danger';

@@ -69,6 +69,9 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
 
   }
 
+  /**
+   *
+  */
   private async saveData(items: ScannedItem[]) {
     await Preferences.set({
       key: this.STORAGE_KEY,
@@ -86,14 +89,23 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
   // Computed signal for the UI to show total count
   totalCount = computed(() => this.scanList().length);
 
+  /**
+   *
+  */
   syncedCount = computed(() =>
     this.scanList().filter(s => s.status === 'synced').length
   );
 
+  /**
+   *
+  */
   errorCount = computed(() =>
     this.scanList().filter(s => s.status === 'error').length
   );
 
+  /**
+   *
+  */
   pendingCount = computed(() =>
     this.scanList().filter(s => s.status === 'pending').length
   );
@@ -112,6 +124,9 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     return ( this.syncedCount() / total );
   });
 
+  /**
+   *
+  */
   // Filtered scanned list items
   filteredScans = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
@@ -122,11 +137,17 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     );
   });
 
+  /**
+   *
+  */
   // Method to update query from the component
   public updateSearch = (term: string) => {
     this.searchQuery.set(term);
   }
 
+  /**
+   *
+  */
   // Function addedfor determining the view state
   public viewStatus = computed(() => {
     if (this.isLoading()) {
@@ -143,6 +164,9 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     return 'data';
   });
 
+  /**
+   *
+  */
   public addScan = (barcode: string) => {
 
     const currentItems = this.scanList();
@@ -171,6 +195,9 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     return true;
   }
 
+  /**
+   *
+  */
   public updateStatus = (barcode: string, status: ScannedItem['status'], productName?: string) => {
     this.scanList.update(items =>
       items.map(item =>
@@ -181,6 +208,9 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     );
   }
 
+  /**
+   *
+  */
   async clearHistory() {
     // Clear the signal state
     this.scanList.set([]);
@@ -188,20 +218,32 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     await Preferences.remove({ key: this.STORAGE_KEY });
   }
 
+  /**
+   *
+  */
   public updateLastSynced = () => {
     this.lastSynced.set(new Date());
   }
 
+  /**
+   *
+  */
   public setSyncing = (val: boolean) => {
     this.isSyncing.set(val);
   }
 
+  /**
+   *
+  */
   public removeScan = (barcode: string) => {
     this.scanList.update(items =>
       items.filter(item => item.barcode !== barcode)
     );
   }
 
+  /**
+   *
+  */
   public generateCSVString = () =>  {
     const data = this.filteredScans();
     if (data.length === 0) return '';
@@ -219,6 +261,9 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     ].join('\n');
   }
 
+  /**
+   *
+  */
   //Function to export scanned item info to csv
   async exportFilteredToCSV() {
 
@@ -242,6 +287,9 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
 
   }
 
+  /**
+   *
+  */
   public downloadFile = (content: string, fileName: string) => {
     const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -255,7 +303,9 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     document.body.removeChild(link);
   }
 
-
+  /**
+   *
+  */
   async shareCSV(csvContent: string) {
     const fileName = `ScanFlow_Export_${Date.now()}.csv`;
 

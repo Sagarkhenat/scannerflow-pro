@@ -22,6 +22,10 @@ export class EmptyStateComponent {
     // Registering the icon so it renders in standalone mode
     addIcons({ barcodeOutline,cloudOfflineOutline,scanOutline  });
   }
+
+  /**
+   *
+  */
   // Dynamic content based on the current app state
   public content = computed(() => {
     switch (this.mode) {

@@ -42,6 +42,9 @@ export class HomePage {
 
   }
 
+  /**
+   *
+  */
   async ngOnInit() {
     // 1. Show the skeleton screen
     this.scanState.isLoading.set(true);
@@ -55,18 +58,27 @@ export class HomePage {
     }
   }
 
+  /**
+   *
+  */
   public mockScanSuccess = (code: string) => {
     console.log('Simulating scan for browser testing...', code);
     this.scanState.addScan(code);
     // This will trigger the SyncService automatically
   }
 
+  /**
+   *
+  */
   public mockScanError = (code: string) => {
     console.log('Simulating scan for browser testing...', code);
     this.scanState.addScan(code);
     // This will trigger the SyncService automatically
   }
 
+  /**
+   *
+  */
   public async startNewScan() {
     try {
       const barcodes = await this.barcodeService.startScan();
@@ -96,12 +108,18 @@ export class HomePage {
     }
   }
 
+  /**
+   *
+  */
   public retrySync = (item: any) => {
     this.scanState.updateStatus(item.barcode, 'pending');
     // Trigger the queue processing manually
     this.syncService.processQueue();
   }
 
+  /**
+   *
+  */
   public async confirmClear () {
     const alert = await this.alertCtrl.create({
       header: 'Clear Item History?',
@@ -121,7 +139,9 @@ export class HomePage {
     await alert.present();
   }
 
-
+  /**
+   *
+  */
   public async handleRefresh(event: any) {
 
     //Trigger haptic feedback for a tactile feel
@@ -132,7 +152,7 @@ export class HomePage {
     }
     console.log('Manual refresh triggered to update the scanned items :::');
 
-    // 1. Start loading state
+    // Start loading state
     this.scanState.isLoading.set(true);
 
     // Find any items that currently have an 'error' status
@@ -149,13 +169,15 @@ export class HomePage {
     // Explicitly trigger the processing queue
     await this.syncService.processQueue();
 
-    // 2. Turn off loading state and notify the UI component
+    // Turn off loading state and notify the UI component
     this.scanState.isLoading.set(false);
     // Complete the refresh animation
     event.target.complete();
   }
 
-
+  /**
+   *
+  */
   private async showDuplicateToast (barcode: string) {
     const toast = await this.toastCtrl.create({
       message: `Duplicate ignored: ${barcode}`,
@@ -167,6 +189,9 @@ export class HomePage {
     await toast.present();
   }
 
+  /**
+   *
+  */
   public deleteScannedItem = (barcode: string) => {
     // Assuming scanState has a method to remove items
     console.log('barcode string value passed in delete scanned itemm flow :::', barcode);
@@ -185,12 +210,12 @@ export class HomePage {
    * This triggers the 'computed' signals for filteredScans automatically.
   */
   public onSearchChange = (event: any) => {
-    console.log('Inside on search item change :::', event);
+    console.log('Inside on search item functionchange :::', event,event.target.value);
     const query = event.target.value || '';
 
     console.log('The query value generated to be passed for searching barcode item:::', query);
 
-    //this.scanState.updateSearch(query);
+    this.scanState.updateSearch(query);
     this.scanState.searchTerm.set(query); // This triggers the viewStatus computed signal!
   }
 
@@ -218,7 +243,9 @@ export class HomePage {
     }
   }
 
-
+  /**
+   *
+  */
   public exportData = () => {
       const csvData = this.scanState.generateCSVString(); // Move the string generation to a helper
 
