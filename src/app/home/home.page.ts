@@ -79,7 +79,7 @@ export class HomePage {
   /**
    *
   */
-  public async startNewScan() {
+  public async startNewScan() : Promise<string[]> {
     try {
       const barcodes = await this.barcodeService.startScan();
 
@@ -103,8 +103,10 @@ export class HomePage {
 
       }// End of for-loop
 
+      return barcodes;
     } catch (err) {
       console.error('Scanning failed', err);
+      return []; // Return empty array on failure
     }
   }
 
@@ -229,30 +231,32 @@ export class HomePage {
   /**
    * Handles actions emitted from the EmptyStateComponent
   */
-  handleEmptyStateAction() {
+  async handleEmptyStateAction() {
+
+    // If they were searching, clear it to show all results
     if (this.scanState.searchTerm()) {
 
-      // If they were searching, clear it to show all results
-      //this.onSearchClear();
       // Scenario: User searched for something that doesn't exist
+      //this.onSearchClear();
       this.scanState.searchTerm.set('');
     } else {
+
       // If the list was totally empty, trigger the scanner
       // Scenario: App is fresh/empty
-      this.startNewScan();
+
+      try {
+        const result = await this.startNewScan();
+
+        // result is now string[] instead of undefined
+        if (result && result.length > 0) {
+          // Ensure your service method persists the updated list
+          await this.scanState.saveScanToDisk(result);
+        }else{}
+      }catch(error){
+        console.error("Action handler failed in handle empty state action", error);
+      }
+
     }
   }
 
-  /**
-   *
-  */
-  public exportData = () => {
-      const csvData = this.scanState.generateCSVString(); // Move the string generation to a helper
-
-      if (this.isNative) {
-        this.scanState.shareCSV(csvData);
-      } else {
-        this.scanState.downloadFile(csvData, 'scans.csv');
-      }
-  }
 }

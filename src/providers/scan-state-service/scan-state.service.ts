@@ -1,6 +1,8 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
 import { Platform } from '@ionic/angular/standalone';
+
+
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 
@@ -14,8 +16,11 @@ export interface ScannedItem {
 }
 
 @Injectable({ providedIn: 'root' })
+
 export class ScanStateService {
-  private readonly STORAGE_KEY = 'scans';
+
+  // 1. Consistent Storage Key
+  private readonly STORAGE_KEY = 'scans_history';
 
   public isLoading = signal<boolean>(false);
   public searchTerm = signal<string>('');
@@ -36,53 +41,67 @@ export class ScanStateService {
 
 constructor(private platform: Platform,private alertCtrl: AlertController) {
 
-    // Load data on startup
-    this.loadPersistedData();
 
+    /**
+     * Whenever the scanList signal changes, this effect automatically
+     * persists the new state to the device storage.
+    */
     // Auto-save whenever scanList changes
     effect(() => {
       const currentList = this.scanList();
-      this.saveData(currentList);
+
+      // Simplified auto-save: any change to scanList is written to disk
+      Preferences.set({
+        key: this.STORAGE_KEY, // Use your consistent key here
+        value: JSON.stringify(currentList),
+      });
+
     });
   }
 
   /**
-   * Mock method to handle initial data fetching.
-   * Replace the timeout with your actual data loading logic.
+   * Method to handle initial data fetching.
+   * Triggered by HomePage to load data with a visual loading state.
   */
   async loadInitialData() {
     // Simulate a network or storage delay to test the skeleton screen
 
+    this.isLoading.set(true); // Ensure skeleton screen shows
     try {
-      // For now, we simulate a delay to verify the skeleton screen works
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          console.log('Initial data loaded on the home page');
-          resolve(true);
-        }, 1500); // 1.5 second delay
-      });
+
+      // Attempt to fetch saved scans from the device
+      const { value } = await Preferences.get({ key: this.STORAGE_KEY});
+
+      if (value) {
+        const savedScans = JSON.parse(value);
+        this.scanList.set(savedScans); // Update your Signal with real data
+      }else{}
+
+      console.log('Data successfully hydrated from local storage');
+
+      return true;
+
     }catch (error) {
+      console.error('Persistence Error:', error);
       console.error('Failed to load initial scans', error);
       throw error;
+    }finally {
+      this.isLoading.set(false);
     }
-
 
   }
 
   /**
-   *
+   * PERSISTENCE BRIDGE: Saves new scans to disk immediately
   */
-  private async saveData(items: ScannedItem[]) {
-    await Preferences.set({
-      key: this.STORAGE_KEY,
-      value: JSON.stringify(items),
-    });
-  }
+  public async saveScanToDisk(newScan: any) {
 
-  private async loadPersistedData() {
-    const { value } = await Preferences.get({ key: this.STORAGE_KEY });
-    if (value) {
-      this.scanList.set(JSON.parse(value));
+    // If we receive a raw string from the scanner, convert to ScannedItem
+    if (typeof newScan === 'string') {
+      this.addScan(newScan);
+    }else{
+
+      this.scanList.update(items => [newScan, ...items]);
     }
   }
 
@@ -165,7 +184,8 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
   });
 
   /**
-   *
+   * ADD SCAN LOGIC
+   * Handles duplicate detection and updates the signal.
   */
   public addScan = (barcode: string) => {
 
@@ -196,13 +216,17 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
   }
 
   /**
+   * Updates scan status and adds metadata
    *
   */
   public updateStatus = (barcode: string, status: ScannedItem['status'], productName?: string) => {
     this.scanList.update(items =>
       items.map(item =>
         item.barcode === barcode
-        ? { ...item, status, productName: productName || item.productName }
+        ? { ...item,
+            status,
+            // If a name is provided, use it; otherwise, keep existing or leave undefined
+            productName: productName || item.productName }
         : item
       )
     );
