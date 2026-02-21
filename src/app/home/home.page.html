@@ -40,7 +40,7 @@
       </div>
     }@else{}
 
-    <!------- end of syncing info divs ------------>
+    <!------- End of syncing info divs ------------>
 
     <!------------------Search bar and filter container------------------------>
     <div class="search-wrapper ion-margin-top ion-margin-bottom">
@@ -56,39 +56,42 @@
 
 
     <!--------------- Ion-card info to show overall sync progress done-------------------------->
-    <ion-card>
-      <ion-card-content>
-        <div class="progress-label">
-          <ion-text color="medium">Overall Sync Progress</ion-text>
-          <strong>{{ scanState.syncProgress() | percent }}</strong>
-        </div>
+    @if (scanState.totalCount() > 0) {
+      <ion-card>
+        <ion-card-content>
+          <div class="progress-label">
+            <ion-text color="medium">Overall Sync Progress</ion-text>
+            <strong>{{ scanState.syncProgress() | percent }}</strong>
+          </div>
 
-        <ion-progress-bar [value]="scanState.syncProgress()"></ion-progress-bar>
+          <ion-progress-bar [value]="scanState.syncProgress()"></ion-progress-bar>
 
-        <ion-grid class="ion-no-padding ion-margin-top">
-          <ion-row>
-            <ion-col size="4" class="ion-text-center">
-              <div class="synced-count">
-                {{ scanState.syncedCount() }}
-              </div>
-              <div class="syncing-label">Synced</div>
-            </ion-col>
-            <ion-col size="4" class="ion-text-center">
-              <div class="error-count">
-                {{ scanState.errorCount() }}
-              </div>
-              <div class="syncing-label">Errors</div>
-            </ion-col>
-            <ion-col size="4" class="ion-text-center">
-              <div class="pending-count">
-                {{ scanState.pendingCount() }}
-              </div>
-              <div class="syncing-label">Pending</div>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-      </ion-card-content>
-    </ion-card>
+          <ion-grid class="ion-no-padding ion-margin-top">
+            <ion-row>
+              <ion-col size="4" class="ion-text-center">
+                <div class="synced-count">
+                  {{ scanState.syncedCount() }}
+                </div>
+                <div class="syncing-label">Synced</div>
+              </ion-col>
+              <ion-col size="4" class="ion-text-center">
+                <div class="error-count">
+                  {{ scanState.errorCount() }}
+                </div>
+                <div class="syncing-label">Errors</div>
+              </ion-col>
+              <ion-col size="4" class="ion-text-center">
+                <div class="pending-count">
+                  {{ scanState.pendingCount() }}
+                </div>
+                <div class="syncing-label">Pending</div>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-card-content>
+      </ion-card>
+    }@else{}
+
     <!--------------End of ion-card info ------------------------------------->
   </div>
   <!--------End of stats container info div -->
@@ -98,6 +101,7 @@
 
 <!------------------------ Content to show the scanned item list and pull to refresh functionality ------------------>
 <ion-content>
+
   <!-- Pull to refresh functionality for updating scan items-->
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
     <ion-refresher-content pullingIcon="chevron-down-circle-outline" refreshingSpinner="circles">
@@ -118,21 +122,55 @@
 
   }
 
-  <!----------------------------------------------->
+  <!----------------Switch case handling for list barcode items------------------------------->
+  @switch (scanState.viewStatus()) {
 
-  <ion-list>
-    @for (item of scanState.filteredScans(); track item.barcode) {
-      <app-scan-item [item]="item"
-        (onRetry)="retrySync($event)"
-        (onDelete)="deleteScannedItem($event)"></app-scan-item>
-    } @empty {
-      <div class="ion-padding ion-text-center" style="margin-top: 50px;">
-        <ion-icon name="scan-outline" style="font-size: 64px; color: var(--ion-color-medium);"></ion-icon>
-        <h3 style="color: var(--ion-color-medium);">No Scans Found</h3>
-        <p>Tap the button below to start tracking inventory.</p>
-      </div>
+    <!--------------Skeleton text loading body ------------------------>
+    @case ('loading') {
+
+      <ion-list>
+        @for (i of [1,2,3,4,5]; track i) {
+          <ion-item lines="none" class="ion-margin-bottom">
+
+            <ion-thumbnail slot="start" style="border-radius: 8px;">
+              <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+            </ion-thumbnail>
+
+            <ion-label>
+              <h3><ion-skeleton-text [animated]="true" style="width: 80%"></ion-skeleton-text></h3>
+              <p><ion-skeleton-text [animated]="true" style="width: 60%"></ion-skeleton-text></p>
+            </ion-label>
+
+          </ion-item>
+        }
+      </ion-list>
     }
-  </ion-list>
+
+    <!--------Initial app ready state with no scanned barcode items -------------->
+    @case ('empty-fresh') {
+      <app-empty-state mode="initial" (onAction)="handleEmptyStateAction()">
+
+      </app-empty-state>
+    }
+
+    @case ('empty-search') {
+      <app-empty-state mode="search" [searchTerm]="scanState.searchTerm()" (onAction)="handleEmptyStateAction()">
+
+      </app-empty-state>
+    }
+
+    @default {
+      <ion-list>
+        @for (item of scanState.filteredScans(); track item.barcode) {
+          <app-scan-item [item]="item"
+            (onRetry)="retrySync($event)"
+            (onDelete)="deleteScannedItem($event)"></app-scan-item>
+        } @empty {}
+      </ion-list>
+    }
+  }
+  <!------------------------- End of switch case handling ----------------------->
+
 
 </ion-content>
 

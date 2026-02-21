@@ -1,6 +1,8 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
 import { Platform } from '@ionic/angular/standalone';
+
+
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 
@@ -14,8 +16,15 @@ export interface ScannedItem {
 }
 
 @Injectable({ providedIn: 'root' })
+
 export class ScanStateService {
-  private readonly STORAGE_KEY = 'scans'
+
+  // 1. Consistent Storage Key
+  private readonly STORAGE_KEY = 'scans_history';
+
+  public isLoading = signal<boolean>(false);
+  public searchTerm = signal<string>('');
+
   // The scanList variable provides the required result
   public scanList = signal<ScannedItem[]>([]);
 
@@ -32,41 +41,90 @@ export class ScanStateService {
 
 constructor(private platform: Platform,private alertCtrl: AlertController) {
 
-    // Load data on startup
-    this.loadPersistedData();
 
+    /**
+     * Whenever the scanList signal changes, this effect automatically
+     * persists the new state to the device storage.
+    */
     // Auto-save whenever scanList changes
     effect(() => {
       const currentList = this.scanList();
-      this.saveData(currentList);
+
+      // Simplified auto-save: any change to scanList is written to disk
+      Preferences.set({
+        key: this.STORAGE_KEY, // Use your consistent key here
+        value: JSON.stringify(currentList),
+      });
+
     });
   }
 
-  private async saveData(items: ScannedItem[]) {
-    await Preferences.set({
-      key: this.STORAGE_KEY,
-      value: JSON.stringify(items),
-    });
+  /**
+   * Method to handle initial data fetching.
+   * Triggered by HomePage to load data with a visual loading state.
+  */
+  async loadInitialData() {
+    // Simulate a network or storage delay to test the skeleton screen
+
+    this.isLoading.set(true); // Ensure skeleton screen shows
+    try {
+
+      // Attempt to fetch saved scans from the device
+      const { value } = await Preferences.get({ key: this.STORAGE_KEY});
+
+      if (value) {
+        const savedScans = JSON.parse(value);
+        this.scanList.set(savedScans); // Update your Signal with real data
+      }else{}
+
+      console.log('Data successfully hydrated from local storage');
+
+      return true;
+
+    }catch (error) {
+      console.error('Persistence Error:', error);
+      console.error('Failed to load initial scans', error);
+      throw error;
+    }finally {
+      this.isLoading.set(false);
+    }
+
   }
 
-  private async loadPersistedData() {
-    const { value } = await Preferences.get({ key: this.STORAGE_KEY });
-    if (value) {
-      this.scanList.set(JSON.parse(value));
+  /**
+   * PERSISTENCE BRIDGE: Saves new scans to disk immediately
+  */
+  public async saveScanToDisk(newScan: any) {
+
+    // If we receive a raw string from the scanner, convert to ScannedItem
+    if (typeof newScan === 'string') {
+      this.addScan(newScan);
+    }else{
+
+      this.scanList.update(items => [newScan, ...items]);
     }
   }
 
   // Computed signal for the UI to show total count
   totalCount = computed(() => this.scanList().length);
 
+  /**
+   *
+  */
   syncedCount = computed(() =>
     this.scanList().filter(s => s.status === 'synced').length
   );
 
+  /**
+   *
+  */
   errorCount = computed(() =>
     this.scanList().filter(s => s.status === 'error').length
   );
 
+  /**
+   *
+  */
   pendingCount = computed(() =>
     this.scanList().filter(s => s.status === 'pending').length
   );
@@ -85,6 +143,9 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     return ( this.syncedCount() / total );
   });
 
+  /**
+   *
+  */
   // Filtered scanned list items
   filteredScans = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
@@ -95,12 +156,37 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     );
   });
 
+  /**
+   *
+  */
   // Method to update query from the component
   public updateSearch = (term: string) => {
     this.searchQuery.set(term);
   }
 
+  /**
+   *
+  */
+  // Function addedfor determining the view state
+  public viewStatus = computed(() => {
+    if (this.isLoading()) {
+      return 'loading';
+    }
 
+    // Note: use .length on the signal value if scanList is a signal
+    if(this.scanList().length === 0 && !this.searchTerm()) {
+      return 'empty-fresh';
+    }
+    if (this.filteredScans().length === 0 && this.searchTerm()){
+      return 'empty-search';
+    }
+    return 'data';
+  });
+
+  /**
+   * ADD SCAN LOGIC
+   * Handles duplicate detection and updates the signal.
+  */
   public addScan = (barcode: string) => {
 
     const currentItems = this.scanList();
@@ -129,16 +215,26 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     return true;
   }
 
+  /**
+   * Updates scan status and adds metadata
+   *
+  */
   public updateStatus = (barcode: string, status: ScannedItem['status'], productName?: string) => {
     this.scanList.update(items =>
       items.map(item =>
         item.barcode === barcode
-        ? { ...item, status, productName: productName || item.productName }
+        ? { ...item,
+            status,
+            // If a name is provided, use it; otherwise, keep existing or leave undefined
+            productName: productName || item.productName }
         : item
       )
     );
   }
 
+  /**
+   *
+  */
   async clearHistory() {
     // Clear the signal state
     this.scanList.set([]);
@@ -146,20 +242,32 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     await Preferences.remove({ key: this.STORAGE_KEY });
   }
 
+  /**
+   *
+  */
   public updateLastSynced = () => {
     this.lastSynced.set(new Date());
   }
 
+  /**
+   *
+  */
   public setSyncing = (val: boolean) => {
     this.isSyncing.set(val);
   }
 
+  /**
+   *
+  */
   public removeScan = (barcode: string) => {
     this.scanList.update(items =>
       items.filter(item => item.barcode !== barcode)
     );
   }
 
+  /**
+   *
+  */
   public generateCSVString = () =>  {
     const data = this.filteredScans();
     if (data.length === 0) return '';
@@ -177,6 +285,9 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     ].join('\n');
   }
 
+  /**
+   *
+  */
   //Function to export scanned item info to csv
   async exportFilteredToCSV() {
 
@@ -200,6 +311,9 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
 
   }
 
+  /**
+   *
+  */
   public downloadFile = (content: string, fileName: string) => {
     const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -213,7 +327,9 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     document.body.removeChild(link);
   }
 
-
+  /**
+   *
+  */
   async shareCSV(csvContent: string) {
     const fileName = `ScanFlow_Export_${Date.now()}.csv`;
 

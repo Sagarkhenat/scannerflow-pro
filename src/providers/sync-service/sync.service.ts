@@ -11,6 +11,9 @@ export class SyncService {
     this.initNetworkListener();
   }
 
+  /**
+   *
+  */
   private async initNetworkListener() {
     // Listen for status changes
     Network.addListener('networkStatusChange', (status: ConnectionStatus) => {
@@ -20,6 +23,9 @@ export class SyncService {
     });
   }
 
+  /**
+   *
+  */
   public async processQueue() {
     const pending = this.scanState.pendingScans();
 
@@ -65,7 +71,10 @@ export class SyncService {
 
   }
 
-private async showErrorToast(message: string) {
+  /**
+   *
+  */
+  private async showErrorToast(message: string) {
     const toast = await this.toastCtrl.create({
       message: message,
       duration: 2000,
@@ -74,9 +83,12 @@ private async showErrorToast(message: string) {
       buttons: [{ text: 'OK', role: 'cancel' }]
     });
     await toast.present();
-}
+  }
 
-private async uploadScan(item: any):Promise<any> {
+  /**
+   *
+  */
+  private async uploadScan(item: any):Promise<any> {
 
     return new Promise((resolve, reject) => {
       // Simulate network latency
@@ -109,6 +121,9 @@ private async uploadScan(item: any):Promise<any> {
     });
   }
 
+  /**
+   *
+  */
   private mockApiCall(data: any) {
     return new Promise(resolve => setTimeout(resolve, 1000));
   }

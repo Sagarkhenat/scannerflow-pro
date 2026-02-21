@@ -1,7 +1,14 @@
 <ion-item-sliding>
   <ion-item lines="none" class="scan-item">
     <div class="item-container">
+
       <div class="info-column">
+
+        <ion-thumbnail slot="start">
+            <div class="barcode-icon-wrapper">
+              <ion-icon name="barcode-outline"></ion-icon>
+            </div>
+        </ion-thumbnail>
 
         <h2 class="product-name">
           {{ item.productName || (item.status === 'error' ? 'Unknown Product' : 'Identifying...') }}
@@ -13,7 +20,8 @@
           <span class="timestamp">{{ item.timestamp | date:'shortTime' }}</span>
         </p>
 
-      </div> <!-- End of info-column div-->
+      </div>
+      <!-- End of info-column div-->
 
       <div class="status-column">
         <ion-badge [color]="getStatusColor(item.status)" class="status-badge">

@@ -1,0 +1,43 @@
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+  height: 100%; // Ensures it fills the content area
+
+  .icon-wrapper {
+    background: var(--ion-color-step-100);
+    border-radius: 50%;
+    padding: 24px;
+    margin-bottom: 20px;
+
+    ion-icon {
+      font-size: 64px;
+      color: var(--ion-color-step-400);
+    }
+  }
+
+  h2 {
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--ion-text-color);
+  }
+
+  p {
+    color: var(--ion-color-step-600);
+    margin-bottom: 24px;
+    font-size: 1rem;
+    max-width: 250px;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
