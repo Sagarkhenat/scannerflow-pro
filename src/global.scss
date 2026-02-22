@@ -31,6 +31,39 @@ body {
   padding-bottom: var(--ion-safe-area-bottom);
 }
 
+body.scanning-active {
+  --background: transparent !important;
+  --ion-background-color: transparent;
+  background: transparent !important;
+
+
+  ion-app,
+  ion-router-outlet,
+  ion-content,
+  ion-header,
+  ion-toolbar,
+  ion-tab-bar,
+  .ion-page {
+    --background: transparent !important;
+    --ion-background-color: transparent !important;
+    background: transparent !important;
+    display: block; /* Ensure they don't collapse but stay clear */
+  }
+
+  /* Optional: Hide the home page content completely while scanning
+    to ensure zero visual interference.
+  */
+  app-home, .main-list-container {
+    display: none;
+  }
+
+  /* Hide elements that shouldn't be seen during scan */
+  ion-header, ion-fab, .stats-container {
+    display: none !important;
+  }
+
+}
+
 /**
  * Ionic Dark Mode
  * -----------------------------------------------------

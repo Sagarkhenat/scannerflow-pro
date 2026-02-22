@@ -1,0 +1,46 @@
+<div class="scanner-container">
+
+  <div class="torch-button-container">
+    <ion-button fill="clear" (click)="barCode.toggleFlashlight()">
+      <ion-icon
+        slot="icon-only"
+        [name]="barCode.isTorchOn() ? 'flashlight' : 'flashlight-outline'"
+        color="light">
+      </ion-icon>
+    </ion-button>
+  </div>
+
+  <div class="scan-flash" [class.active]="barCode.isFlashing()"></div>
+  <div class="viewfinder">
+
+    <!-------Pulsing ring around the viewfinder area--------->
+    <div class="focus-ring"></div>
+
+    <div class="corner top-left"></div>
+    <div class="corner top-right"></div>
+    <div class="corner bottom-left"></div>
+    <div class="corner bottom-right"></div>
+  </div>
+
+  <div class="batch-stats-badge">
+    <ion-icon name="barcode-outline"></ion-icon>
+    <span>{{ barCode.scanCount() }} Items Scanned</span>
+  </div>
+
+  <div class="scanner-footer">
+    <p class="hint">Point at a barcode to scan automatically</p>
+    <ion-button expand="block" color="light" (click)="barCode.stopBatchScan()">
+      DONE
+    </ion-button>
+  </div>
+
+  @if (barCode.lastScannedValue()) {
+    <div class="scan-toast">
+      <ion-icon name="checkmark-circle" color="success"></ion-icon>
+      <div class="toast-content">
+        <span class="toast-label">Last Scanned</span>
+        <span class="toast-value">{{ barCode.lastScannedValue() }}</span>
+      </div>
+    </div>
+  }
+</div>

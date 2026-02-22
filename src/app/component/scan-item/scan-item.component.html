@@ -29,6 +29,7 @@
         </ion-badge>
 
 
+        <!------------retry button provided for error scanned items -------------->
         @if(item.status === 'error'){
           <ion-button fill="clear" color="danger" (click)="onRetry.emit(item)">
             <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
@@ -38,9 +39,12 @@
         }
       </div>
       <!--End of status-column div-->
-    </div><!--End of item-container div-->
+
+    </div>
+    <!--End of item-container div-->
   </ion-item>
 
+  <!------------------Swipe to delete scanned item----------------------------------->
   <ion-item-options side="end">
     <ion-item-option color="danger" expandable (click)="onDelete.emit(item.barcode)">
       <ion-icon slot="icon-only" name="trash-outline"></ion-icon>

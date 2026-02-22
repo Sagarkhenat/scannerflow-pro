@@ -8,6 +8,9 @@ import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 
 import { AlertController } from '@ionic/angular';
 
+import { FeedbackService } from '../providers';
+import { MOCK_INVENTORY } from 'src/app/data/mock-inventory';
+
 export interface ScannedItem {
   barcode: string;
   timestamp: number;
@@ -39,8 +42,11 @@ export class ScanStateService {
   // Property to check if we are on a native device
   isNative = this.platform.is('hybrid');
 
-constructor(private platform: Platform,private alertCtrl: AlertController) {
+  public isScanning = signal<boolean>(false);
+  // Helper to check if scanning is active for UI overlays
+  public showOverlay = computed(() => this.isScanning());
 
+constructor(private platform: Platform,private alertCtrl: AlertController,private feedback: FeedbackService) {
 
     /**
      * Whenever the scanList signal changes, this effect automatically
@@ -184,32 +190,44 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
   });
 
   /**
-   * ADD SCAN LOGIC
+   * ADD SCAN FUNCTION LOGIC
    * Handles duplicate detection and updates the signal.
   */
-  public addScan = (barcode: string) => {
+  public addScan = async (barcode: string) => {
 
     const currentItems = this.scanList();
+
+    const now = Date.now();
+
     console.log('current Items variable in add Scan function :::', currentItems);
 
     // Check if the barcode already exists or scanned in the last 10 seconds
     const isDuplicate = currentItems.some(item =>
-      item.barcode === barcode &&
-      (Date.now() - item.timestamp) < 10000 // 10-second window
+      item.barcode === barcode && (now - item.timestamp) < 10000
     );
 
     if (isDuplicate) {
       console.warn(`Duplicate scan detected for ${barcode}. Ignoring.`);
       console.log('Duplicate scan detected for the barcode item :: ', barcode);
-    return false; // Return false so the UI can provide feedback if needed
-    }else{}
+      // Trigger Warning Haptic (Double Pulse)
+      await this.feedback.duplicate();
+      return false; // Return false so the UI can provide feedback if needed
+    }else{
+
+    }
+
+    //Get the product name
+    const product = this.lookupProduct(barcode);
 
     const newItem: ScannedItem = {
       barcode,
       timestamp: Date.now(),
-      status: 'pending'
+      status: 'pending',
+      productName: product.name,
     };
 
+    // Trigger Success Haptic (Single Pulse)
+    await this.feedback.success();
     this.scanList.update(items => [newItem, ...items]);
 
     return true;
@@ -230,6 +248,26 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
         : item
       )
     );
+  }
+
+  /**
+ * Maps a raw barcode string to a product name.
+ * In a real-world app, this would query a local SQLite DB or an API.
+ */
+  lookupProduct(barcode: string): { name: string; category?: string } {
+
+    console.log('barcode value passed in lookupProduct function :::', barcode);
+
+    // Mock Data Dictionary
+    const product = MOCK_INVENTORY.find(item => item.id === barcode);
+
+    // If found, return the product info; otherwise return a generic label
+    if (product) {
+      return { name: product.name };
+    }
+
+    // Fallback if the item isn't in your inventory list
+    return { name: `Unknown Item (${barcode})` };
   }
 
   /**

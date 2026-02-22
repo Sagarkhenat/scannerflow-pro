@@ -46,13 +46,19 @@ The application utilizes a reactive flow where UI states are computed results of
 
 ## ✨ Key Features
 
-**Signal-Driven State Management:** Leverages Angular signals and computed values to manage complex UI states (loading, empty-fresh, empty-search, and data) with zero manual subscription management
-**Automated Data Persistence:** Features a reactive Auto-Save Engine using Angular effect() to automatically sync local state to Capacitor Preferences on every change
-**Native Barcode Scanning:** Leverages `@capacitor-mlkit/barcode-scanning` for lightning-fast, hardware-accelerated detection.
-**UX Resiliency:** Includes a Sync Timeout fail-safe and Skeleton Screens (ion-skeleton-text) to handle slow storage/network reads gracefully
-**Multi-Platform Export:** A unified bridge for CSV generation, supporting Capacitor Share for native mobile devices and Blob-streaming for web browsers
-**Robust Error Handling:** Built-in logic to handle and display specific API error states (404 Item Not Found, 500 Server Error) with manual retry capabilities.
-**Modern Standalone Architecture:** 100% Standalone components and functional providers, eliminating the need for legacy NgModules.
+* **Signal-Driven State Management:** Leverages Angular signals and computed values to manage complex UI states (loading, empty-fresh, empty-search, and data) with zero manual subscription management
+
+* **Automated Data Persistence:** Features a reactive Auto-Save Engine using Angular effect() to automatically sync local state to Capacitor Preferences on every change
+
+* **Native Barcode Scanning:** Leverages `@capacitor-mlkit/barcode-scanning` for lightning-fast, hardware-accelerated detection.
+
+* **UX Resiliency:** Includes a Sync Timeout fail-safe and Skeleton Screens (ion-skeleton-text) to handle slow storage/network reads gracefully
+
+* **Multi-Platform Export:** A unified bridge for CSV generation, supporting Capacitor Share for native mobile devices and Blob-streaming for web browsers
+
+* **Robust Error Handling:** Built-in logic to handle and display specific API error states (404 Item Not Found, 500 Server Error) with manual retry capabilities.
+
+* **Modern Standalone Architecture:** 100% Standalone components and functional providers, eliminating the need for legacy NgModules.
 
 ## 🛠️ Tech Stack
 
