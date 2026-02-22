@@ -13,17 +13,26 @@
     align-items: center;
     width: 100%;
     padding: 12px 0;
-  }
+  }// End of item-container css
 
   .info-column {
     flex: 1;
+
+    .barcode-icon-wrapper{
+      --size:20px !important;
+      ion-icon{
+        width:20px;
+        height:20px;
+      }
+    }
+
     .product-name {
       font-weight: 700;
       font-size: 1.05rem;
       color: #ffffff; /* Brighter for dark mode contrast */
       margin: 0 0 4px 0;
     }
-  }
+  }// End of info-column css
 
   .status-column {
     display: flex;
@@ -49,7 +58,7 @@
       margin: 0;
       color: var(--ion-color-danger);
     }
-  }
+  }//End of status-column css
 
   .barcode-badge {
       background: rgba(255, 255, 255, 0.1);
@@ -57,7 +66,7 @@
       border-radius: 4px;
       font-family: 'Courier New', Courier, monospace;
       font-weight: 800;
-  }
+  }//End of barcode-bage css
 
   .item-details {
     display: flex;
@@ -69,18 +78,18 @@
     .separator {
       margin: 0 8px;
     }
-  }
+  }// End of item-details css
 
   .barcode-text {
     font-weight: bold;
     font-size: 1.1rem;
     letter-spacing: 0.5px;
-  }
+  }// End of barcode-text css
 
   .timestamp-text {
     font-size: 0.85rem;
     margin-top: 4px;
-  }
+  }// End of timestamp-text css
 
 
   /* Force badge colors if [color] attribute fails */

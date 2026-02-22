@@ -2,8 +2,7 @@
 
   <div class="torch-button-container">
     <ion-button fill="clear" (click)="barCode.toggleFlashlight()">
-      <ion-icon
-        slot="icon-only"
+      <ion-icon slot="icon-only"
         [name]="barCode.isTorchOn() ? 'flashlight' : 'flashlight-outline'"
         color="light">
       </ion-icon>
@@ -11,6 +10,7 @@
   </div>
 
   <div class="scan-flash" [class.active]="barCode.isFlashing()"></div>
+
   <div class="viewfinder">
 
     <!-------Pulsing ring around the viewfinder area--------->

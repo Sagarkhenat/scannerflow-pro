@@ -47,14 +47,14 @@ export class HomePage {
    *
   */
   async ngOnInit() {
-    // 1. Show the skeleton screen
+    // Show the skeleton screen items
     this.scanState.isLoading.set(true);
 
     try {
-      // 2. Load your data (e.g., from Storage or API)
+      // Load your data (e.g., from Storage or API)
       await this.scanState.loadInitialData();
     } finally {
-      // 3. Hide the skeleton (the UI will automatically switch to Data or Empty)
+      // Hide the skeleton screen items (the UI will automatically switch to Data or Empty)
       this.scanState.isLoading.set(false);
     }
   }
@@ -181,7 +181,7 @@ export class HomePage {
    * This triggers the 'computed' signals for filteredScans automatically.
   */
   public onSearchChange = (event: any) => {
-    console.log('Inside on search item functionchange :::', event,event.target.value);
+    console.log('Inside on search change function call :::', event.target.value);
     const query = event.target.value || '';
 
     console.log('The query value generated to be passed for searching barcode item:::', query);

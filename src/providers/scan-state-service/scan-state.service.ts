@@ -51,8 +51,8 @@ constructor(private platform: Platform,private alertCtrl: AlertController,privat
     /**
      * Whenever the scanList signal changes, this effect automatically
      * persists the new state to the device storage.
+     * Auto-save whenever scanList changes
     */
-    // Auto-save whenever scanList changes
     effect(() => {
       const currentList = this.scanList();
 
@@ -111,25 +111,27 @@ constructor(private platform: Platform,private alertCtrl: AlertController,privat
     }
   }
 
-  // Computed signal for the UI to show total count
+  /**
+   * Computed signal for the UI to show total count
+   */
   totalCount = computed(() => this.scanList().length);
 
   /**
-   *
+   * Computed signal for giving total synced items from the scanned items list
   */
   syncedCount = computed(() =>
     this.scanList().filter(s => s.status === 'synced').length
   );
 
   /**
-   *
+   * Computed signal for providing total error items (Not in inventory)
   */
   errorCount = computed(() =>
     this.scanList().filter(s => s.status === 'error').length
   );
 
   /**
-   *
+   *  Computed signal for giving total pending items
   */
   pendingCount = computed(() =>
     this.scanList().filter(s => s.status === 'pending').length
@@ -150,11 +152,13 @@ constructor(private platform: Platform,private alertCtrl: AlertController,privat
   });
 
   /**
-   *
+   *  Filtered scanned computed list items
+   * Currently returns scanned items based on barcode value
   */
-  // Filtered scanned list items
   filteredScans = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
+    console.log('Inside filtered Scans condition updated query :::', query);
+
     if (!query) return this.scanList();
 
     return this.scanList().filter(item =>
@@ -163,17 +167,15 @@ constructor(private platform: Platform,private alertCtrl: AlertController,privat
   });
 
   /**
-   *
+   *  Method to update the search query from the component
   */
-  // Method to update query from the component
   public updateSearch = (term: string) => {
     this.searchQuery.set(term);
   }
 
   /**
-   *
+   *  Function addedfor determining the view state
   */
-  // Function addedfor determining the view state
   public viewStatus = computed(() => {
     if (this.isLoading()) {
       return 'loading';
@@ -251,9 +253,9 @@ constructor(private platform: Platform,private alertCtrl: AlertController,privat
   }
 
   /**
- * Maps a raw barcode string to a product name.
- * In a real-world app, this would query a local SQLite DB or an API.
- */
+  * Maps a raw barcode string to a product name.
+  * In a real-world app, this would query a local SQLite DB or an API.
+  */
   lookupProduct(barcode: string): { name: string; category?: string } {
 
     console.log('barcode value passed in lookupProduct function :::', barcode);
@@ -324,9 +326,8 @@ constructor(private platform: Platform,private alertCtrl: AlertController,privat
   }
 
   /**
-   *
+   * Function to export scanned item info to csv
   */
-  //Function to export scanned item info to csv
   async exportFilteredToCSV() {
 
     const csvContent = this.generateCSVString();

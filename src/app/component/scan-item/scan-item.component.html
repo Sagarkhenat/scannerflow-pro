@@ -4,11 +4,11 @@
 
       <div class="info-column">
 
-        <ion-thumbnail slot="start">
-            <div class="barcode-icon-wrapper">
-              <ion-icon name="barcode-outline"></ion-icon>
-            </div>
-        </ion-thumbnail>
+        <div class="barcode-icon-wrapper">
+          <ion-thumbnail slot="start">
+                <ion-icon name="barcode-outline"></ion-icon>
+          </ion-thumbnail>
+        </div>
 
         <h2 class="product-name">
           {{ item.productName || (item.status === 'error' ? 'Unknown Product' : 'Identifying...') }}
