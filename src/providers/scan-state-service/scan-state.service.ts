@@ -8,6 +8,9 @@ import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 
 import { AlertController } from '@ionic/angular';
 
+import { FeedbackService } from '../providers';
+import { MOCK_INVENTORY } from 'src/app/data/mock-inventory';
+
 export interface ScannedItem {
   barcode: string;
   timestamp: number;
@@ -39,14 +42,17 @@ export class ScanStateService {
   // Property to check if we are on a native device
   isNative = this.platform.is('hybrid');
 
-constructor(private platform: Platform,private alertCtrl: AlertController) {
+  public isScanning = signal<boolean>(false);
+  // Helper to check if scanning is active for UI overlays
+  public showOverlay = computed(() => this.isScanning());
 
+constructor(private platform: Platform,private alertCtrl: AlertController,private feedback: FeedbackService) {
 
     /**
      * Whenever the scanList signal changes, this effect automatically
      * persists the new state to the device storage.
+     * Auto-save whenever scanList changes
     */
-    // Auto-save whenever scanList changes
     effect(() => {
       const currentList = this.scanList();
 
@@ -105,25 +111,27 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     }
   }
 
-  // Computed signal for the UI to show total count
+  /**
+   * Computed signal for the UI to show total count
+   */
   totalCount = computed(() => this.scanList().length);
 
   /**
-   *
+   * Computed signal for giving total synced items from the scanned items list
   */
   syncedCount = computed(() =>
     this.scanList().filter(s => s.status === 'synced').length
   );
 
   /**
-   *
+   * Computed signal for providing total error items (Not in inventory)
   */
   errorCount = computed(() =>
     this.scanList().filter(s => s.status === 'error').length
   );
 
   /**
-   *
+   *  Computed signal for giving total pending items
   */
   pendingCount = computed(() =>
     this.scanList().filter(s => s.status === 'pending').length
@@ -144,11 +152,13 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
   });
 
   /**
-   *
+   *  Filtered scanned computed list items
+   * Currently returns scanned items based on barcode value
   */
-  // Filtered scanned list items
   filteredScans = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
+    console.log('Inside filtered Scans condition updated query :::', query);
+
     if (!query) return this.scanList();
 
     return this.scanList().filter(item =>
@@ -157,17 +167,15 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
   });
 
   /**
-   *
+   *  Method to update the search query from the component
   */
-  // Method to update query from the component
   public updateSearch = (term: string) => {
     this.searchQuery.set(term);
   }
 
   /**
-   *
+   *  Function addedfor determining the view state
   */
-  // Function addedfor determining the view state
   public viewStatus = computed(() => {
     if (this.isLoading()) {
       return 'loading';
@@ -184,32 +192,44 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
   });
 
   /**
-   * ADD SCAN LOGIC
+   * ADD SCAN FUNCTION LOGIC
    * Handles duplicate detection and updates the signal.
   */
-  public addScan = (barcode: string) => {
+  public addScan = async (barcode: string) => {
 
     const currentItems = this.scanList();
+
+    const now = Date.now();
+
     console.log('current Items variable in add Scan function :::', currentItems);
 
     // Check if the barcode already exists or scanned in the last 10 seconds
     const isDuplicate = currentItems.some(item =>
-      item.barcode === barcode &&
-      (Date.now() - item.timestamp) < 10000 // 10-second window
+      item.barcode === barcode && (now - item.timestamp) < 10000
     );
 
     if (isDuplicate) {
       console.warn(`Duplicate scan detected for ${barcode}. Ignoring.`);
       console.log('Duplicate scan detected for the barcode item :: ', barcode);
-    return false; // Return false so the UI can provide feedback if needed
-    }else{}
+      // Trigger Warning Haptic (Double Pulse)
+      await this.feedback.duplicate();
+      return false; // Return false so the UI can provide feedback if needed
+    }else{
+
+    }
+
+    //Get the product name
+    const product = this.lookupProduct(barcode);
 
     const newItem: ScannedItem = {
       barcode,
       timestamp: Date.now(),
-      status: 'pending'
+      status: 'pending',
+      productName: product.name,
     };
 
+    // Trigger Success Haptic (Single Pulse)
+    await this.feedback.success();
     this.scanList.update(items => [newItem, ...items]);
 
     return true;
@@ -233,9 +253,29 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
   }
 
   /**
+  * Maps a raw barcode string to a product name.
+  * In a real-world app, this would query a local SQLite DB or an API.
+  */
+  public lookupProduct = (barcode: string): { name: string; category?: string } => {
+
+    console.log('barcode value passed in lookupProduct function :::', barcode);
+
+    // Mock Data Dictionary
+    const product = MOCK_INVENTORY.find(item => item.id === barcode);
+
+    // If found, return the product info; otherwise return a generic label
+    if (product) {
+      return { name: product.name };
+    }
+
+    // Fallback if the item isn't in your inventory list
+    return { name: `Unknown Item (${barcode})` };
+  }
+
+  /**
    *
   */
-  async clearHistory() {
+  public async clearHistory(){
     // Clear the signal state
     this.scanList.set([]);
     // Remove the key from local persistence
@@ -286,9 +326,8 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
   }
 
   /**
-   *
+   * Function to export scanned item info to csv
   */
-  //Function to export scanned item info to csv
   async exportFilteredToCSV() {
 
     const csvContent = this.generateCSVString();
@@ -296,10 +335,8 @@ constructor(private platform: Platform,private alertCtrl: AlertController) {
     if (!csvContent) return;
 
     if (this.isNative) {
-
       // Mobile Flow: Save to disk then Share
       await this.shareCSV(csvContent);
-
     } else {
       // Web Flow: Direct Download
 

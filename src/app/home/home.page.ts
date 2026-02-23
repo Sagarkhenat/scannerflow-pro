@@ -14,6 +14,7 @@ import { Haptics, ImpactStyle,NotificationType } from '@capacitor/haptics';
 
 import { ScanItemComponent } from '../component/scan-item/scan-item.component';
 import { EmptyStateComponent } from '../component/empty-state/empty-state.component';
+import { ScannerOverlayComponent } from '../component/scanner-overlay/scanner-overlay.component';
 import { BarcodeService,ScanStateService,SyncService } from 'src/providers/providers';
 
 
@@ -27,7 +28,7 @@ import { BarcodeService,ScanStateService,SyncService } from 'src/providers/provi
             IonList,IonFab, IonFabButton, IonIcon,
             IonText, IonGrid, IonRow, IonCol,IonHeader,IonButton,
             IonRefresher, IonRefresherContent,IonSpinner,EmptyStateComponent,
-            IonItem,IonThumbnail,IonSkeletonText]
+            IonItem,IonThumbnail,IonSkeletonText,ScannerOverlayComponent]
 })
 export class HomePage {
 
@@ -46,14 +47,14 @@ export class HomePage {
    *
   */
   async ngOnInit() {
-    // 1. Show the skeleton screen
+    // Show the skeleton screen items
     this.scanState.isLoading.set(true);
 
     try {
-      // 2. Load your data (e.g., from Storage or API)
+      // Load your data (e.g., from Storage or API)
       await this.scanState.loadInitialData();
     } finally {
-      // 3. Hide the skeleton (the UI will automatically switch to Data or Empty)
+      // Hide the skeleton screen items (the UI will automatically switch to Data or Empty)
       this.scanState.isLoading.set(false);
     }
   }
@@ -79,34 +80,15 @@ export class HomePage {
   /**
    *
   */
-  public async startNewScan() : Promise<string[]> {
+  public async startNewScan() : Promise<void> {
     try {
-      const barcodes = await this.barcodeService.startScan();
 
-      // Iterate through each barcode to check for duplicates individually
-      for (const code of barcodes) {
-        const wasAdded = this.scanState.addScan(code); //
+      // start Batch Scan triggers the listener and native overlay
+      // It does not return the barcodes; it processes them in the service.
+      await this.barcodeService.startBatchScan();
 
-        // Check for running on android/iOS device
-        if (this.isNative) {
-          if (wasAdded) {
-            // Success: Add a "Light" impact for a clean confirmation
-            await Haptics.impact({ style: ImpactStyle.Light });
-          } else {
-            // Duplicate: Double-pulse "warning" vibration
-            await Haptics.notification({ type: NotificationType.Warning });
-
-            // Show the "Duplicate" Toast
-            await this.showDuplicateToast(code);
-          }
-        }else{}
-
-      }// End of for-loop
-
-      return barcodes;
     } catch (err) {
-      console.error('Scanning failed', err);
-      return []; // Return empty array on failure
+      console.error('Scanning failed in start new scan code', err);
     }
   }
 
@@ -177,19 +159,6 @@ export class HomePage {
     event.target.complete();
   }
 
-  /**
-   *
-  */
-  private async showDuplicateToast (barcode: string) {
-    const toast = await this.toastCtrl.create({
-      message: `Duplicate ignored: ${barcode}`,
-      duration: 1500,
-      position: 'bottom',
-      color: 'warning',
-      buttons: [{ text: 'OK', role: 'cancel' }]
-    });
-    await toast.present();
-  }
 
   /**
    *
@@ -212,7 +181,7 @@ export class HomePage {
    * This triggers the 'computed' signals for filteredScans automatically.
   */
   public onSearchChange = (event: any) => {
-    console.log('Inside on search item functionchange :::', event,event.target.value);
+    console.log('Inside on search change function call :::', event.target.value);
     const query = event.target.value || '';
 
     console.log('The query value generated to be passed for searching barcode item:::', query);
@@ -245,13 +214,14 @@ export class HomePage {
       // Scenario: App is fresh/empty
 
       try {
-        const result = await this.startNewScan();
+
+        await this.startNewScan();
 
         // result is now string[] instead of undefined
-        if (result && result.length > 0) {
-          // Ensure your service method persists the updated list
-          await this.scanState.saveScanToDisk(result);
-        }else{}
+        // if (result && result.length > 0) {
+        //   await this.scanState.saveScanToDisk(result);
+        // }else{}
+
       }catch(error){
         console.error("Action handler failed in handle empty state action", error);
       }
