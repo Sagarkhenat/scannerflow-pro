@@ -256,7 +256,7 @@ constructor(private platform: Platform,private alertCtrl: AlertController,privat
   * Maps a raw barcode string to a product name.
   * In a real-world app, this would query a local SQLite DB or an API.
   */
-  lookupProduct(barcode: string): { name: string; category?: string } {
+  public lookupProduct = (barcode: string): { name: string; category?: string } => {
 
     console.log('barcode value passed in lookupProduct function :::', barcode);
 
@@ -275,7 +275,7 @@ constructor(private platform: Platform,private alertCtrl: AlertController,privat
   /**
    *
   */
-  async clearHistory() {
+  public async clearHistory(){
     // Clear the signal state
     this.scanList.set([]);
     // Remove the key from local persistence
@@ -335,10 +335,8 @@ constructor(private platform: Platform,private alertCtrl: AlertController,privat
     if (!csvContent) return;
 
     if (this.isNative) {
-
       // Mobile Flow: Save to disk then Share
       await this.shareCSV(csvContent);
-
     } else {
       // Web Flow: Direct Download
 

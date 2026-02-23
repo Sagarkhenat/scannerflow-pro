@@ -1,6 +1,6 @@
-import { Injectable,signal, Renderer2, RendererFactory2,Inject } from '@angular/core';
-import { BarcodeScanner, BarcodeFormat,LensFacing } from '@capacitor-mlkit/barcode-scanning';
-import { DOCUMENT } from '@angular/common';
+import { Injectable,signal } from '@angular/core';
+import { BarcodeScanner,LensFacing } from '@capacitor-mlkit/barcode-scanning';
+
 
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { ScanStateService,FeedbackService } from '../providers';
@@ -18,10 +18,7 @@ export class BarcodeService {
 
   public lastScannedValue = signal<string | null>(null);
 
-  private renderer: Renderer2;
-  constructor(private scanState:ScanStateService, private feedback:FeedbackService,rendererFactory: RendererFactory2,
-    @Inject(DOCUMENT) private document: Document ){
-    this.renderer = rendererFactory.createRenderer(null, null);
+  constructor(private scanState:ScanStateService, private feedback:FeedbackService){
   }
 
 
@@ -45,12 +42,11 @@ export class BarcodeService {
     const status = await BarcodeScanner.checkPermissions();
     console.log('Inside start scan function status variable value :::', status);
 
-    if (status.camera !== 'granted') {
+    if(status.camera !== 'granted') {
       await BarcodeScanner.requestPermissions();
-    }
+    }else{}
 
     console.log('scanState is scanning boolean output BEFORE start batch scan :::', this.scanState.isScanning());
-    console.log('SETTING IS_SCANNING TO TRUE');
 
     // 1. CLEAR existing listeners first to prevent "Zombies"
     await BarcodeScanner.removeAllListeners();
@@ -81,6 +77,7 @@ export class BarcodeService {
     // Prepare UI: Make background transparent and show overlay
     this.scanState.isScanning.set(true);
     document.body.classList.add('scanning-active');
+
     // Add a small delay to let Angular render the DOM before the camera starts
     await new Promise(resolve => setTimeout(resolve, 300));
 
@@ -100,12 +97,10 @@ export class BarcodeService {
 
     if (scannedValue) {
 
-      // 1. Lookup the product name using your existing service
+      //Lookup the product name using your existing service
       const productInfo = this.scanState.lookupProduct(scannedValue);
 
-      //this.lastScannedValue.set(scannedValue);
-
-      // 2. Set the toast to show the Name (or barcode if name isn't found)
+      //Set the toast to show the Name (or barcode if name isn't found)
       this.lastScannedValue.set(productInfo.name || scannedValue);
 
       // Clear previous timeout if user scans rapidly
@@ -117,12 +112,11 @@ export class BarcodeService {
         this.lastScannedValue.set(null);
       }, 2000);
 
-    }else{
+    }else{}
 
-    }
     this.isFlashing.set(true);
 
-    // 1. Physical Vibration
+    //Physical Vibration
     await Haptics.impact({ style: ImpactStyle.Light });
 
     // Automatically turn off the class so it can be re-triggered
@@ -164,16 +158,6 @@ export class BarcodeService {
   // Safety: Ensure camera turns off if user navigates back via hardware button
   ngOnDestroy() {
     this.stopBatchScan();
-  }
-
-  //Function added to render provided class on document.body
-  addClass(className: string) {
-    this.renderer.addClass(this.document.body, className);
-  }
-
-   //Function added to remove the render provided class from document.body
-  removeClass(className: string) {
-    this.renderer.removeClass(this.document.body, className);
   }
 
 }

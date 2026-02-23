@@ -62,12 +62,12 @@ The application utilizes a reactive flow where UI states are computed results of
 
 ## 🛠️ Tech Stack
 
-**Framework:** Ionic 7 + Angular 17 (Standalone)
-**Native Bridge:** Capacitor 5+
-**State:** Angular Signals & RxJS (Modern Reactive Pattern)
-**Persistence:** Capacitor Preferences & Filesystem
-**Styling:** SCSS + Ionic Design System
-**CI/CD:** Vercel (PWA)
+* **Framework:** Ionic 7 + Angular 17 (Standalone)
+* **Native Bridge:** Capacitor 5+
+* **State:** Angular Signals & RxJS (Modern Reactive Pattern)
+* **Persistence:** Capacitor Preferences & Filesystem
+* **Styling:** SCSS + Ionic Design System
+* **CI/CD:** Vercel (PWA)
 
 ## 🧪 Testing & Verification
 
