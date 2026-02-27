@@ -45,14 +45,14 @@ export class SyncService {
 
         // Update the state with BOTH the status and the retrieved name
         // You'll need an updateItem method in your service to handle multiple fields
-        this.scanState.updateStatus(item.barcode, 'synced', product.name);
+        this.scanState.updateStatus(item.timestamp, 'synced', product.name);
 
       } catch (error: any) {
         // Handle different error types
         if (error.status === 404) {
           console.log('Item not found in inventory condition :::');
           console.error('Item not found in inventory');
-          this.scanState.updateStatus(item.barcode, 'error', 'Product Not Found');
+          this.scanState.updateStatus(item.timestamp, 'error', 'Product Not Found');
 
           // Trigger the error Toast
           this.showErrorToast(`Barcode ${item.barcode} not recognized.`);
@@ -60,7 +60,7 @@ export class SyncService {
         } else {
           // For network timeouts, keep it as 'pending' to retry later
           console.warn('Network timeout, will retry when connection is stable');
-          this.scanState.updateStatus(item.barcode, 'error');
+          this.scanState.updateStatus(item.timestamp, 'error');
         }
       }
     }

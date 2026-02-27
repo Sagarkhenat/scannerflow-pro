@@ -3,7 +3,8 @@ import { Platform,IonContent,IonProgressBar,IonCard,
         IonCardContent, IonList,IonFab, IonFabButton,
         IonIcon,IonText, IonGrid, IonRow,IonCol,
         IonHeader,AlertController,IonButton,IonSpinner,
-        IonSearchbar,IonItem,IonThumbnail,IonSkeletonText, IonLabel } from '@ionic/angular/standalone';
+        IonSearchbar,IonItem,IonThumbnail,IonSkeletonText,
+        IonLabel, IonItemGroup, IonItemDivider } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
 import { scanOutline,trashOutline,chevronDownCircleOutline,downloadOutline } from 'ionicons/icons';
@@ -23,7 +24,7 @@ import { BarcodeService,ScanStateService,SyncService } from 'src/providers/provi
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [IonLabel, IonSearchbar, CommonModule, ScanItemComponent, PercentPipe,DatePipe,
+  imports: [IonItemDivider, IonItemGroup, IonLabel, IonSearchbar, CommonModule, ScanItemComponent, PercentPipe,DatePipe,
             IonContent,IonProgressBar,IonCard,IonCardContent,
             IonList,IonFab, IonFabButton, IonIcon,
             IonText, IonGrid, IonRow, IonCol,IonHeader,IonButton,
@@ -96,7 +97,10 @@ export class HomePage {
    *
   */
   public retrySync = (item: any) => {
-    this.scanState.updateStatus(item.barcode, 'pending');
+    // 1. Immediately update UI to show it is attempting to sync again
+    // FIXED: Passing item.timestamp instead of item.barcode
+    this.scanState.updateStatus(item.timestamp, 'pending');
+
     // Trigger the queue processing manually
     this.syncService.processQueue();
   }
@@ -144,7 +148,8 @@ export class HomePage {
     this.scanState.scanList().forEach(item => {
       console.log('Individual item found from the scanned list ::::', item);
       if (item.status === 'error') {
-        this.scanState.updateStatus(item.barcode, 'pending');
+        // FIXED: Passing item.timestamp instead of item.barcode
+        this.scanState.updateStatus(item.timestamp, 'pending');
       }else{
 
       }
@@ -163,30 +168,34 @@ export class HomePage {
   /**
    *
   */
-  public deleteScannedItem = (barcode: string) => {
-    // Assuming scanState has a method to remove items
-    console.log('barcode string value passed in delete scanned itemm flow :::', barcode);
+  // public deleteScannedItem = (barcode: string) => {
+  //   // Assuming scanState has a method to remove items
+  //   console.log('barcode string value passed in delete scanned itemm flow :::', barcode);
 
-    this.scanState.removeScan(barcode);
+  //   this.scanState.removeScan(barcode);
 
-    // Add a light haptic tap to confirm deletion
-    if (this.isNative) {
-      Haptics.impact({ style: ImpactStyle.Light });
-    }else{}
+  //   // Add a light haptic tap to confirm deletion
+  //   if (this.isNative) {
+  //     Haptics.impact({ style: ImpactStyle.Light });
+  //   }else{}
 
-  }
+  // }
 
   /**
    * Updates the search term in the service.
    * This triggers the 'computed' signals for filteredScans automatically.
   */
   public onSearchChange = (event: any) => {
+
     console.log('Inside on search change function call :::', event.target.value);
     const query = event.target.value || '';
 
     console.log('The query value generated to be passed for searching barcode item:::', query);
 
-    this.scanState.updateSearch(query);
+    // Directly updating the signal triggers the computed filteredScans
+    // and your viewStatus signal automatically.
+    // this.scanState.updateSearch(query); //Commented during search-filter implementation
+
     this.scanState.searchTerm.set(query); // This triggers the viewStatus computed signal!
   }
 
@@ -194,7 +203,10 @@ export class HomePage {
    * Resets the search when the 'X' is clicked or 'Clear' button is pressed
   */
   public onSearchClear = () => {
-    this.scanState.updateSearch('');
+
+    //this.scanState.updateSearch('');//Commented during search-filter implementation
+
+    this.scanState.searchTerm.set('');
   }
 
   /**
@@ -227,6 +239,65 @@ export class HomePage {
       }
 
     }
+  }
+
+  /**
+   * Handles actions
+  */
+  public handleDelete = async (eventData: { timestampId: number, slidingEl: any }) => {
+    const { timestampId, slidingEl } = eventData;
+    //Capture the item before deletion for the Undo recovery
+    const currentScans = this.scanState.scanList();
+    const itemToDelete = currentScans.find(scan => scan.timestamp === timestampId);
+
+    // Safety check: Exit if the item doesn't exist
+    if (!itemToDelete){
+      slidingEl.close(); // Safety closure
+      return;
+    }
+
+    console.log('Deleting specific scan event:', timestampId);
+
+    // Present the Confirmation Alert
+    const alert = await this.alertCtrl.create({
+        header: 'Confirm Deletion',
+        message: `Are you sure you want to remove <strong>${itemToDelete.productName || 'this item'}</strong>?`,
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+            // If they cancel, we do nothing and the item stays
+            handler: () => {
+              // Programmatically close the slider if the user cancels
+              slidingEl.close();
+            }
+          },
+          {
+            text: 'Delete',
+            role: 'destructive',
+            handler: async () => {
+              // Safely update the signal to remove ONLY the matched timestamp
+              // Execute the deletion
+              this.scanState.scanList.update(scans =>
+                scans.filter(scan => scan.timestamp !== timestampId)
+              );
+
+              // Show the Success Toast
+              const toast = await this.toastCtrl.create({
+                message: `${itemToDelete.productName || 'Item'} deleted successfully.`,
+                duration: 2000,
+                position: 'bottom',
+                color: 'dark'
+              });
+
+              await toast.present();
+            }
+          }
+        ]
+    });
+
+    await alert.present();
+
   }
 
 }

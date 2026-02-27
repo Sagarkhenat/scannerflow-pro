@@ -128,6 +128,7 @@ export class BarcodeService {
       await BarcodeScanner.toggleTorch();
       this.isTorchOn.update(state => !state);
     } catch (err) {
+      console.warn('Torch toggle failed or unsupported on this device:', err);
       console.error('Torch not available on this device', err);
     }
   }

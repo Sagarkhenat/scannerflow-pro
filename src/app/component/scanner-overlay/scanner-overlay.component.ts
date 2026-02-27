@@ -2,7 +2,7 @@ import { Component} from '@angular/core';
 import { IonButton, IonIcon,} from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { barcodeOutline,flashlight,flashlightOutline } from 'ionicons/icons';
+import { barcodeOutline,flashlight,flashlightOutline,flash, flashOff, checkmarkCircle} from 'ionicons/icons';
 
 import { BarcodeService,ScanStateService } from 'src/providers/providers';
 
@@ -17,7 +17,7 @@ import { BarcodeService,ScanStateService } from 'src/providers/providers';
 export class ScannerOverlayComponent {
   constructor(public scanState:ScanStateService,public barCode: BarcodeService){
 
-    addIcons({barcodeOutline,flashlight,flashlightOutline  });
+    addIcons({barcodeOutline,flashlight,flashlightOutline,flash, flashOff,checkmarkCircle  });
 
   }
 }

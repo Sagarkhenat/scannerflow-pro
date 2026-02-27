@@ -159,11 +159,19 @@ constructor(private platform: Platform,private alertCtrl: AlertController,privat
     const query = this.searchQuery().toLowerCase().trim();
     console.log('Inside filtered Scans condition updated query :::', query);
 
+    // Return the full list if the search bar is cleared
     if (!query) return this.scanList();
 
-    return this.scanList().filter(item =>
-      item.barcode.toLowerCase().includes(query)
-    );
+    return this.scanList().filter(item =>{
+
+        // Safe null-checks prevent Error States if metadata is missing
+        const matchesBarcode = item.barcode?.toLowerCase().includes(query);
+        const matchesProduct = item.productName?.toLowerCase().includes(query);
+
+        //item.barcode.toLowerCase().includes(query) //Previously used to only search against barcode value
+
+        return matchesBarcode || matchesProduct;
+    });
   });
 
   /**
@@ -239,10 +247,10 @@ constructor(private platform: Platform,private alertCtrl: AlertController,privat
    * Updates scan status and adds metadata
    *
   */
-  public updateStatus = (barcode: string, status: ScannedItem['status'], productName?: string) => {
+  public updateStatus = (timestampId: number, status: ScannedItem['status'], productName?: string) => {
     this.scanList.update(items =>
       items.map(item =>
-        item.barcode === barcode
+        item.timestamp === timestampId
         ? { ...item,
             status,
             // If a name is provided, use it; otherwise, keep existing or leave undefined
@@ -308,21 +316,59 @@ constructor(private platform: Platform,private alertCtrl: AlertController,privat
   /**
    *
   */
+  public groupedScans = computed(() => {
+    const currentScans = this.filteredScans();
+    const groups = new Map<string, any[]>();
+
+    currentScans.forEach(scan => {
+      // 1. Error State check: safely skip if a timestamp is somehow missing
+      if (!scan.timestamp) return;
+
+      // 2. Generate the date label (e.g., "Feb 23, 2026")
+      const dateObj = new Date(scan.timestamp);
+      const dateLabel = dateObj.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+
+      // 3. Group the items into the Map
+      if (!groups.has(dateLabel)) {
+        groups.set(dateLabel, []);
+      }
+      groups.get(dateLabel)!.push(scan);
+    });
+
+    // 4. Convert the Map into an array so Angular can easily iterate over it
+    return Array.from(groups, ([dateLabel, items]) => ({ dateLabel, items }));
+  });
+
+
+  /**
+   *
+  */
   public generateCSVString = () =>  {
     const data = this.filteredScans();
     if (data.length === 0) return '';
 
-    const headers = ['Barcode', 'Status', 'Timestamp'];
-    const rows = data.map(item => [
-      item.barcode,
-      item.status,
-      new Date(item.timestamp).toLocaleString()
-    ]);
+    const headers = ['Date', 'Time', 'Barcode', 'Product Name', 'Status'];
+    const rows = data.map(item => {
+          // Error State logic: Safely handle missing timestamps
+          const safeTimestamp = item.timestamp ? new Date(item.timestamp) : new Date();
 
-    return [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
+          return [
+            safeTimestamp.toLocaleDateString('en-US'),
+            safeTimestamp.toLocaleTimeString('en-US'),
+            item.barcode || 'N/A',
+            item.productName || 'Unknown Item',
+            item.status || 'pending'
+          ];
+        });
+
+        return [
+          headers.join(','),
+          ...rows.map(row => row.join(','))
+        ].join('\n');
   }
 
   /**
