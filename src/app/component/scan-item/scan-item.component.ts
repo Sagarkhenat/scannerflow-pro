@@ -19,7 +19,7 @@ export class ScanItemComponent {
   @Input({ required: true }) item!: ScannedItem; // Uses the interface from ScanStateService
   @Output() onRetry = new EventEmitter<ScannedItem>();
 
-  @Output() onDelete = new EventEmitter<string>(); // Emits the barcode to delete
+  @Output() onDelete = new EventEmitter<{ timestampId: number, slidingEl: IonItemSliding }>(); // Emitting the numeric timestamp
 
   constructor() {
     addIcons({ refreshOutline,trashOutline,barcodeOutline });
@@ -37,5 +37,13 @@ export class ScanItemComponent {
       case 'pending': return 'warning';
       default: return 'medium'; // 'pending'
     }
+  }
+
+  /**
+   *
+  */
+  // Helper method to emit both pieces of data
+  public onDeleteClick(timestampId: number, slidingEl: IonItemSliding) {
+    this.onDelete.emit({ timestampId, slidingEl });
   }
 }

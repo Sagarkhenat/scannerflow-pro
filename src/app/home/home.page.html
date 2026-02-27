@@ -169,11 +169,31 @@
 
         <!------------------------Load the scan item component--------------------------->
         <ion-list>
-          @for (item of scanState.filteredScans(); track item.barcode) {
+
+          <!-- @for (item of scanState.filteredScans(); track item.barcode) {
             <app-scan-item [item]="item"
               (onRetry)="retrySync($event)"
-              (onDelete)="deleteScannedItem($event)"></app-scan-item>
-          } @empty {}
+              (onDelete)="handleDelete($event)"></app-scan-item>
+          } @empty {} -->
+
+          @for (group of scanState.groupedScans(); track group.dateLabel) {
+            <ion-item-group>
+              <ion-item-divider sticky="true" color="light">
+                <ion-label class="ion-text-uppercase ion-text-bold">
+                  {{ group.dateLabel }}
+                </ion-label>
+              </ion-item-divider>
+
+              @for (item of group.items; track item.timestamp) {
+                <app-scan-item [item]="item"
+                  (onRetry)="retrySync($event)"
+                  (onDelete)="handleDelete($event)">
+                </app-scan-item>
+              }@empty {}
+            </ion-item-group>
+          }@empty {}
+
+
         </ion-list>
       }
     }
